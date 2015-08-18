@@ -1,2 +1,5 @@
 # Ignore binary
 main
+
+# Ignore dev dockerfile
+docker
