@@ -192,7 +192,7 @@ func (s *Stat) Delete() error {
 }
 
 /*
-	Get stats container id
+	Get stats by container id
 */
 func GetStatsByContainerID(containerID string) ([]Stat, error) {
 	var stats []Stat   // List of stats to return
