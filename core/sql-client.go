@@ -2,6 +2,7 @@ package core
 
 import (
 	"database/sql"
+	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -105,14 +106,25 @@ func (c *Container) Delete() error {
 
 /*
 	Get containers by $field
-
-	/!\ WARNING: use with caution, this function can do SQL injection /!\
 */
 func GetContainersBy(field string, value interface{}) ([]Container, error) {
 	var containers []Container // Containers to return
 	var rows *sql.Rows         // SQL Rows
 	var err error              // Error handling
 
+	// Protection against SQL injection
+	var fieldExists bool = false
+	for _, i := range []string{"id", "hostname", "image", "ip", "mac"} {
+		if field == i {
+			fieldExists = true
+		}
+	}
+	if !fieldExists {
+		l.Error("GetContainersBy: Field (" + field + ") does not exist.")
+		return containers, errors.New("GetContainersBy: Field (" + field + ") does not exist.")
+	}
+
+	// Get containers
 	rows, err = DB.Query("SELECT * FROM containers WHERE "+field+"=?", value)
 	if err != nil {
 		l.Error("GetContainersBy:", err)
@@ -122,7 +134,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 	for rows.Next() {
 		var tmpContainer Container
 
-		if err := rows.Scan(&tmpContainer.ID,
+		if err = rows.Scan(&tmpContainer.ID,
 			&tmpContainer.Hostname,
 			&tmpContainer.Image,
 			&tmpContainer.IPAddress,
@@ -133,7 +145,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 
 		containers = append(containers, tmpContainer)
 	}
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		l.Error("GetContainersBy:", err)
 		return containers, err
 	}
