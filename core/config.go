@@ -9,12 +9,7 @@ import (
 	Program config struct
 */
 type Config struct {
-	Probes []struct {
-		IPAddress   string  `yaml:"ip-address"`
-		Port        string  `yaml:"port"`
-		APIPassword string  `yaml:"api-password"`
-		ReloadTime  float64 `yaml:"reload-time"`
-	} `yaml:"probes"`
+	Probes []Probe `yaml:"probes"`
 }
 
 var (
