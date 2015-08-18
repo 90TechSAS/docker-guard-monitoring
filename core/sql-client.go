@@ -144,26 +144,17 @@ func GetContainersBy(field string, value interface{}) []Container {
 /*
 	Get a container by id
 */
-func GetContainerById(id string) Container {
-	var container Container
-	var iD string
-	var hostname string
-	var image string
-	var ipAddress string
-	var macAddress string
+func GetContainerById(id string) (Container, error) {
+	var container Container // Container to return
+	var err error           // Error handling
 
-	err := GetContainerByIdStmt.QueryRow(id+"b").Scan(&iD, &hostname, &image, &ipAddress, &macAddress)
+	err = GetContainerByIdStmt.QueryRow(id+"b").Scan(&container.ID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
 	if err != nil {
-		l.Critical(err)
+		l.Error("GetContainerById:", err)
+		return container, err
 	}
 
-	container.ID = id
-	container.Hostname = hostname
-	container.Image = image
-	container.IPAddress = ipAddress
-	container.MacAddress = macAddress
-
-	return container
+	return container, nil
 }
 
 /*
