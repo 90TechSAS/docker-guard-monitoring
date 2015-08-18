@@ -104,41 +104,41 @@ func (c *Container) Delete() error {
 }
 
 /*
-	Get a container by $field
-*/
-func GetContainersBy(field string, value interface{}) []Container {
-	var containers []Container
+	Get containers by $field
 
-	rows, err := DB.Query("SELECT * FROM containers WHERE "+field+"=?", value)
+	/!\ WARNING: use with caution, this function can do SQL injection /!\
+*/
+func GetContainersBy(field string, value interface{}) ([]Container, error) {
+	var containers []Container // Containers to return
+	var rows *sql.Rows         // SQL Rows
+	var err error              // Error handling
+
+	rows, err = DB.Query("SELECT * FROM containers WHERE "+field+"=?", value)
 	if err != nil {
-		l.Critical(err)
+		l.Error("GetContainersBy:", err)
+		return containers, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var tmpContainer Container
-		var id string
-		var hostname string
-		var image string
-		var ipAddress string
-		var macAddress string
 
-		if err := rows.Scan(&id, &hostname, &image, &ipAddress, &macAddress); err != nil {
-			l.Critical(err)
+		if err := rows.Scan(&tmpContainer.ID,
+			&tmpContainer.Hostname,
+			&tmpContainer.Image,
+			&tmpContainer.IPAddress,
+			&tmpContainer.MacAddress); err != nil {
+			l.Error("GetContainersBy:", err)
+			return containers, err
 		}
-
-		tmpContainer.ID = id
-		tmpContainer.Hostname = hostname
-		tmpContainer.Image = image
-		tmpContainer.IPAddress = ipAddress
-		tmpContainer.MacAddress = macAddress
 
 		containers = append(containers, tmpContainer)
 	}
 	if err := rows.Err(); err != nil {
-		l.Critical(err)
+		l.Error("GetContainersBy:", err)
+		return containers, err
 	}
 
-	return containers
+	return containers, nil
 }
 
 /*
