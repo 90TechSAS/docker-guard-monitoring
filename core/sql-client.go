@@ -192,10 +192,10 @@ func (s *Stat) Delete() error {
 	Get stats container id
 */
 func GetStatsByContainerID(containerID string) ([]Stat, error) {
-	var stats []Stat
-	var tmpStat Stat
-	var err error
-	var rows *sql.Rows
+	var stats []Stat   // List of stats to return
+	var err error      // Erro handling
+	var tmpStat Stat   // Temporary stat
+	var rows *sql.Rows // Temporary sql rows
 
 	rows, err = GetStatsByContainerIdStmt.Query(containerID)
 	if err != nil {
