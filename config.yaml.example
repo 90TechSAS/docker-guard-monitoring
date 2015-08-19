@@ -1,3 +1,10 @@
+docker-guard:
+  sql-server:
+    ip: 127.0.0.1
+    port: 3306
+    user: "dgs"
+    pass: "dgs"
+    db: "dgs"
 probes:
   -
     ip-address: 127.0.0.1

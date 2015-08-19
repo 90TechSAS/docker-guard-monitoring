@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
+
+	"../utils"
 )
 
 /*
@@ -49,7 +51,12 @@ func InitSQL() {
 	var err error // Error handling
 
 	// Connect DB
-	DB, err = sql.Open("mysql", "root:toor@tcp(172.17.0.4:3306)/dgs")
+	sqlc := DGConfig.DockerGuard.SQLServer // SQL Config
+	DB, err = sql.Open("mysql", sqlc.User+":"+sqlc.Pass+"@tcp("+sqlc.IP+":"+utils.I2S(sqlc.Port)+")/"+sqlc.DB)
+	if err != nil {
+		l.Critical(err)
+	}
+	err = DB.Ping()
 	if err != nil {
 		l.Critical(err)
 	}

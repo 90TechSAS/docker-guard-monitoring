@@ -9,6 +9,15 @@ import (
 	Program config struct
 */
 type Config struct {
+	DockerGuard struct {
+		SQLServer struct {
+			IP   string `yaml:"ip"`
+			Port int    `yaml:"port"`
+			User string `yaml:"user"`
+			Pass string `yaml:"pass"`
+			DB   string `yaml:"db"`
+		} `yaml:"sql-server"`
+	} `yaml:"docker-guard"`
 	Probes []Probe `yaml:"probes"`
 }
 
