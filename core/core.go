@@ -42,9 +42,11 @@ func (p *Probe) MonitorProbe() {
 	var body []byte         // Http body
 	var err error           // Error handling
 
+	// Reloading loop
 	for {
 		l.Verbose("Reloading", p.Name)
 
+		// Make HTTP GET request
 		reqURI := p.URI + "/list"
 		l.Verbose("GET", reqURI)
 		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
@@ -54,6 +56,8 @@ func (p *Probe) MonitorProbe() {
 			continue
 		}
 		req.Header.Set("Auth", p.APIPassword)
+
+		// Do request
 		resp, err = HTTPClient.Do(req)
 		if err != nil {
 			l.Error("MonitorProbe: Can't get", p.Name, "container list:", err)
@@ -61,6 +65,7 @@ func (p *Probe) MonitorProbe() {
 			continue
 		}
 
+		// Get request body
 		body, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			l.Error("MonitorProbe: Can't get", p.Name, "container list body:", err)
@@ -69,6 +74,9 @@ func (p *Probe) MonitorProbe() {
 		}
 
 		l.Silly("MonitorProbe:", "GET", reqURI, "body:\n", string(body))
+
+		// Parse body
+		// TODO
 
 		time.Sleep(time.Second * time.Duration(p.ReloadTime))
 	}
