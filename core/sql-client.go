@@ -3,6 +3,7 @@ package core
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -276,12 +277,9 @@ func GetContainerByCID(cid string) (Container, error) {
 */
 func (s *Stat) Insert() error {
 	var err error // Error handling
+	var timeInsert int64 = time.Now().Unix()
 
-	if s.ContainerID == 0 {
-		panic("")
-	}
-
-	_, err = InsertStatStmt.Exec(s.ContainerID, s.Time, s.SizeRootFs, s.SizeRw, s.SizeMemory, s.Running)
+	_, err = InsertStatStmt.Exec(s.ContainerID, timeInsert, s.SizeRootFs, s.SizeRw, s.SizeMemory, s.Running)
 
 	return err
 }
