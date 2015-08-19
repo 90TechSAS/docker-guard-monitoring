@@ -14,7 +14,7 @@ import (
 */
 type Container struct {
 	ID         string
-	ProbeID    string
+	ProbeID    int
 	Hostname   string
 	Image      string
 	IPAddress  string
@@ -37,7 +37,9 @@ type Stat struct {
 	SQL Variables
 */
 var (
-	DB *sql.DB // DB
+	// DB
+	DB       *sql.DB
+	ProbesID map[string]int
 
 	// Prepared queries
 	GetProbeIDStmt            *sql.Stmt
@@ -97,6 +99,16 @@ func InitSQL() {
 	GetStatsByContainerIdStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=?")
 	if err != nil {
 		l.Critical("Can't create DeleteStatStmt:", err)
+	}
+
+	// Get probes ID
+	ProbesID = make(map[string]int)
+	for _, probe := range DGConfig.Probes {
+		id, err := GetProbeID(probe.Name)
+		if err != nil {
+			l.Critical("Error GetProbeID ("+probe.Name+"):", err)
+		}
+		ProbesID[probe.Name] = id
 	}
 }
 
