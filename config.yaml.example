@@ -7,11 +7,13 @@ docker-guard:
     db: "dgs"
 probes:
   -
+    name: "probe1"
     ip-address: 127.0.0.1
     port: 8123
     api-password: "changeme"
     reload-time: 5
   -
+    name: "probe2"
     ip-address: 127.0.0.1
     port: 8123
     api-password: "changeme"

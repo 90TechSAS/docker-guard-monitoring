@@ -7,6 +7,7 @@ import (
 var ()
 
 type Probe struct {
+	Name        string  `yaml:"name"`
 	IPAddress   string  `yaml:"ip-address"`
 	Port        string  `yaml:"port"`
 	APIPassword string  `yaml:"api-password"`
@@ -33,7 +34,7 @@ func Init() {
 */
 func (p *Probe) MonitorProbe() {
 	for {
-		l.Verbose("Reloading probe:", p.IPAddress+":"+p.Port)
+		l.Verbose("Reloading", p.Name, "("+p.IPAddress+":"+p.Port+")")
 		// TODO
 
 		time.Sleep(time.Second * time.Duration(p.ReloadTime))
