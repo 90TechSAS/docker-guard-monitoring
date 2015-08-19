@@ -45,6 +45,7 @@ func (p *Probe) MonitorProbe() {
 	var body []byte                             // Http body
 	var err error                               // Error handling
 	var containers map[string]*dguard.Container // Returned container list
+	var dbContainers []Container                // Containers in DB
 	var probeID int                             // Probe ID
 
 	probeID, err = GetProbeID(p.Name)
@@ -54,6 +55,7 @@ func (p *Probe) MonitorProbe() {
 
 	// Reloading loop
 	for {
+		containers = nil
 		l.Verbose("Reloading", p.Name)
 
 		// Make HTTP GET request
@@ -91,6 +93,26 @@ func (p *Probe) MonitorProbe() {
 			l.Error("MonitorProbe: Parsing container list:", err)
 		}
 
+		// Remove in DB old removed containers
+		dbContainers, err = GetContainersBy("probeid", probeID)
+		if err != nil {
+			l.Error("MonitorProbe: Can't get", p.Name, "container list in DB")
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+		for _, dbC := range dbContainers {
+			var containerStillExist = false
+			for _, c := range containers {
+				if dbC.CID == c.ID {
+					containerStillExist = true
+				}
+			}
+			if !containerStillExist {
+				dbC.Delete()
+			}
+		}
+
+		// Add containers and stats in DB
 		for _, c := range containers {
 			var id int64
 			var tmpContainer Container

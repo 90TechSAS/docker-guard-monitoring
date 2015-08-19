@@ -82,7 +82,7 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create InsertContainerStmt:", err)
 	}
-	DeleteContainerStmt, err = DB.Prepare("DELETE FROM containers WHERE id=?")
+	DeleteContainerStmt, err = DB.Prepare("DELETE FROM containers WHERE containerid=?")
 	if err != nil {
 		l.Critical("Can't create DeleteContainerStmt:", err)
 	}
@@ -190,7 +190,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 
 	// Protection against SQL injection
 	var fieldExists bool = false
-	for _, i := range []string{"id", "containerid", "hostname", "image", "ip", "mac"} {
+	for _, i := range []string{"id", "containerid", "probeid", "hostname", "image", "ip", "mac"} {
 		if field == i {
 			fieldExists = true
 		}
@@ -203,27 +203,28 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 	// Get containers
 	rows, err = DB.Query("SELECT * FROM containers WHERE "+field+"=?", value)
 	if err != nil {
-		l.Error("GetContainersBy:", err)
+		l.Error("GetContainersBy: Can't get rows:", err)
 		return containers, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var tmpContainer Container
 
-		if err = rows.Scan(tmpContainer.ID, &tmpContainer.CID,
+		if err = rows.Scan(&tmpContainer.ID,
+			&tmpContainer.CID,
 			&tmpContainer.ProbeID,
 			&tmpContainer.Hostname,
 			&tmpContainer.Image,
 			&tmpContainer.IPAddress,
 			&tmpContainer.MacAddress); err != nil {
-			l.Error("GetContainersBy:", err)
+			l.Error("GetContainersBy: Can't scan row:", err)
 			return containers, err
 		}
 
 		containers = append(containers, tmpContainer)
 	}
 	if err = rows.Err(); err != nil {
-		l.Error("GetContainersBy:", err)
+		l.Error("GetContainersBy: Rows error:", err)
 		return containers, err
 	}
 
