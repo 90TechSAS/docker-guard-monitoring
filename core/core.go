@@ -92,6 +92,7 @@ func (p *Probe) MonitorProbe() {
 		}
 
 		for _, c := range containers {
+			// Add containers in DB
 			_, err := GetContainerById(c.ID)
 			if err != nil {
 				if err.Error() == "sql: no rows in result set" {
@@ -99,13 +100,23 @@ func (p *Probe) MonitorProbe() {
 					err = sqlContainer.Insert()
 					if err != nil {
 						l.Error("MonitorProbe: container insert:", err)
+						continue
 					}
 				} else {
 					l.Error("MonitorProbe: GetContainerById:", err)
+					continue
 				}
+			}
+
+			// Add stats in DB
+			sqlStat := Stat{c.ID, int64(c.Time), uint64(c.SizeRootFs), uint64(c.SizeRw), uint64(c.MemoryUsed), c.Running}
+			err = sqlStat.Insert()
+			if err != nil {
+				l.Error("MonitorProbe: stat insert:", err)
+				continue
 			}
 		}
 
-		time.Sleep(time.Second * time.Duration(p.ReloadTime))
+		// time.Sleep(time.Second * time.Duration(p.ReloadTime))
 	}
 }
