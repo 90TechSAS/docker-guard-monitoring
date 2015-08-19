@@ -223,8 +223,12 @@ func GetContainerById(id string) (Container, error) {
 
 	err = GetContainerByIdStmt.QueryRow(id).Scan(&container.ID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
 	if err != nil {
-		l.Error("GetContainerById:", err)
-		return container, err
+		if err.Error() == "sql: no rows in result set" {
+			return container, err
+		} else {
+			l.Error("GetContainerById:", err)
+			return container, err
+		}
 	}
 
 	return container, nil

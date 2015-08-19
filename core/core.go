@@ -2,9 +2,12 @@ package core
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	dguard "github.com/90TechSAS/libgo-docker-guard"
 )
 
 var (
@@ -37,10 +40,17 @@ func Init() {
 	Loop for monitoring a probe
 */
 func (p *Probe) MonitorProbe() {
-	var resp *http.Response // Http response
-	var req *http.Request   // Http response
-	var body []byte         // Http body
-	var err error           // Error handling
+	var resp *http.Response                     // Http response
+	var req *http.Request                       // Http response
+	var body []byte                             // Http body
+	var err error                               // Error handling
+	var containers map[string]*dguard.Container // Returned container list
+	var probeID int                             // Probe ID
+
+	probeID, err = GetProbeID(p.Name)
+	if err != nil {
+		l.Critical("MonitorProbe: Can't get probe ID", err)
+	}
 
 	// Reloading loop
 	for {
@@ -48,7 +58,7 @@ func (p *Probe) MonitorProbe() {
 
 		// Make HTTP GET request
 		reqURI := p.URI + "/list"
-		l.Verbose("GET", reqURI)
+		l.Debug("GET", reqURI)
 		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
 		if err != nil {
 			l.Error("MonitorProbe: Can't create", p.Name, "HTTP request:", err)
@@ -76,7 +86,25 @@ func (p *Probe) MonitorProbe() {
 		l.Silly("MonitorProbe:", "GET", reqURI, "body:\n", string(body))
 
 		// Parse body
-		// TODO
+		err = json.Unmarshal([]byte(body), &containers)
+		if err != nil {
+			l.Error("MonitorProbe: Parsing container list:", err)
+		}
+
+		for _, c := range containers {
+			_, err := GetContainerById(c.ID)
+			if err != nil {
+				if err.Error() == "sql: no rows in result set" {
+					sqlContainer := Container{c.ID, probeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
+					err = sqlContainer.Insert()
+					if err != nil {
+						l.Error("MonitorProbe: container insert:", err)
+					}
+				} else {
+					l.Error("MonitorProbe: GetContainerById:", err)
+				}
+			}
+		}
 
 		time.Sleep(time.Second * time.Duration(p.ReloadTime))
 	}
