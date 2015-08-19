@@ -11,9 +11,13 @@ import (
 )
 
 var (
+	// HTTP client used to get probe infos
 	HTTPClient *http.Client = &http.Client{}
 )
 
+/*
+	Probe
+*/
 type Probe struct {
 	Name        string  `yaml:"name"`
 	URI         string  `yaml:"uri"`
@@ -25,12 +29,17 @@ type Probe struct {
 	Initialize Core
 */
 func Init() {
+	// Init SQL client
 	InitSQL()
 
+	// Launch probe monitors
 	for _, probe := range DGConfig.Probes {
 		go probe.MonitorProbe()
 	}
 
+	// Launch API
+	// Temporary dirty loop to avoid program shutdown
+	// TODO: API
 	for {
 		time.Sleep(time.Minute)
 	}
@@ -48,6 +57,7 @@ func (p *Probe) MonitorProbe() {
 	var dbContainers []Container                // Containers in DB
 	var probeID int                             // Probe ID
 
+	// Get probe ID in DB, create it if does not exists
 	probeID, err = GetProbeID(p.Name)
 	if err != nil {
 		l.Critical("MonitorProbe: Can't get probe ID", err)
@@ -144,6 +154,6 @@ func (p *Probe) MonitorProbe() {
 			}
 		}
 
-		// time.Sleep(time.Second * time.Duration(p.ReloadTime))
+		time.Sleep(time.Second * time.Duration(p.ReloadTime))
 	}
 }
