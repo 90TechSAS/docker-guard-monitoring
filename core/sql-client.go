@@ -13,7 +13,8 @@ import (
 	Container info
 */
 type Container struct {
-	ID         string
+	ID         int
+	CID        string
 	ProbeID    int
 	Hostname   string
 	Image      string
@@ -25,7 +26,7 @@ type Container struct {
 	Container's stats
 */
 type Stat struct {
-	ContainerID string
+	ContainerID int
 	Time        int64
 	SizeRootFs  uint64
 	SizeRw      uint64
@@ -42,14 +43,15 @@ var (
 	ProbesID map[string]int
 
 	// Prepared queries
-	GetProbeIDStmt            *sql.Stmt
-	InsertProbeStmt           *sql.Stmt
-	InsertContainerStmt       *sql.Stmt
-	DeleteContainerStmt       *sql.Stmt
-	InsertStatStmt            *sql.Stmt
-	DeleteStatStmt            *sql.Stmt
-	GetContainerByIdStmt      *sql.Stmt
-	GetStatsByContainerIdStmt *sql.Stmt
+	GetProbeIDStmt             *sql.Stmt
+	InsertProbeStmt            *sql.Stmt
+	InsertContainerStmt        *sql.Stmt
+	DeleteContainerStmt        *sql.Stmt
+	InsertStatStmt             *sql.Stmt
+	DeleteStatStmt             *sql.Stmt
+	GetContainerByCIDStmt      *sql.Stmt
+	GetStatsByContainerIdStmt  *sql.Stmt
+	GetStatsByContainerCIDStmt *sql.Stmt
 )
 
 func InitSQL() {
@@ -76,7 +78,7 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create InsertContainerStmt:", err)
 	}
-	InsertContainerStmt, err = DB.Prepare("INSERT INTO containers VALUES (?,?,?,?,?,?)")
+	InsertContainerStmt, err = DB.Prepare("INSERT INTO containers VALUES (DEFAULT,?,?,?,?,?,?)")
 	if err != nil {
 		l.Critical("Can't create InsertContainerStmt:", err)
 	}
@@ -92,13 +94,17 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create DeleteStatStmt:", err)
 	}
-	GetContainerByIdStmt, err = DB.Prepare("SELECT * FROM containers WHERE id=?")
+	GetContainerByCIDStmt, err = DB.Prepare("SELECT * FROM containers WHERE containerid=?")
 	if err != nil {
 		l.Critical("Can't create GetContainerByIdStmt:", err)
 	}
-	GetStatsByContainerIdStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=?")
+	GetStatsByContainerIdStmt, err = DB.Prepare("SELECT * FROM containers WHERE id=?")
 	if err != nil {
-		l.Critical("Can't create DeleteStatStmt:", err)
+		l.Critical("Can't create GetStatsByContainerIdStmt:", err)
+	}
+	GetStatsByContainerCIDStmt, err = DB.Prepare("SELECT * FROM containers WHERE containerid=?")
+	if err != nil {
+		l.Critical("Can't create GetStatsByContainerCIDStmt:", err)
 	}
 
 	// Get probes ID
@@ -145,12 +151,22 @@ func GetProbeID(name string) (int, error) {
 /*
 	Insert a container
 */
-func (c *Container) Insert() error {
-	var err error // Error handling
+func (c *Container) Insert() (int64, error) {
+	var err error         // Error handling
+	var result sql.Result // SQL result
 
-	_, err = InsertContainerStmt.Exec(c.ID, c.ProbeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress)
+	result, err = InsertContainerStmt.Exec(c.CID, c.ProbeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress)
 
-	return err
+	if err == nil {
+		id, err := result.LastInsertId()
+		if err != nil {
+			return 0, err
+		} else {
+			return id, nil
+		}
+	}
+
+	return 0, err
 }
 
 /*
@@ -159,7 +175,7 @@ func (c *Container) Insert() error {
 func (c *Container) Delete() error {
 	var err error // Error handling
 
-	_, err = DeleteContainerStmt.Exec(c.ID)
+	_, err = DeleteContainerStmt.Exec(c.CID)
 
 	return err
 }
@@ -174,7 +190,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 
 	// Protection against SQL injection
 	var fieldExists bool = false
-	for _, i := range []string{"id", "hostname", "image", "ip", "mac"} {
+	for _, i := range []string{"id", "containerid", "hostname", "image", "ip", "mac"} {
 		if field == i {
 			fieldExists = true
 		}
@@ -194,7 +210,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 	for rows.Next() {
 		var tmpContainer Container
 
-		if err = rows.Scan(&tmpContainer.ID,
+		if err = rows.Scan(tmpContainer.ID, &tmpContainer.CID,
 			&tmpContainer.ProbeID,
 			&tmpContainer.Hostname,
 			&tmpContainer.Image,
@@ -217,16 +233,36 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 /*
 	Get a container by id
 */
-func GetContainerById(id string) (Container, error) {
+func GetContainerByID(id int) (Container, error) {
 	var container Container // Container to return
 	var err error           // Error handling
 
-	err = GetContainerByIdStmt.QueryRow(id).Scan(&container.ID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
+	err = GetContainerByCIDStmt.QueryRow(id).Scan(&container.ID, &container.CID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return container, err
 		} else {
-			l.Error("GetContainerById:", err)
+			l.Error("GetContainerByID:", err)
+			return container, err
+		}
+	}
+
+	return container, nil
+}
+
+/*
+	Get a container by cid
+*/
+func GetContainerByCID(cid string) (Container, error) {
+	var container Container // Container to return
+	var err error           // Error handling
+
+	err = GetContainerByCIDStmt.QueryRow(cid).Scan(&container.ID, &container.CID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return container, err
+		} else {
+			l.Error("GetContainerByCID:", err)
 			return container, err
 		}
 	}
@@ -239,6 +275,10 @@ func GetContainerById(id string) (Container, error) {
 */
 func (s *Stat) Insert() error {
 	var err error // Error handling
+
+	if s.ContainerID == 0 {
+		panic("")
+	}
 
 	_, err = InsertStatStmt.Exec(s.ContainerID, s.Time, s.SizeRootFs, s.SizeRw, s.SizeMemory, s.Running)
 
