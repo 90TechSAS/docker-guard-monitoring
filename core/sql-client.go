@@ -14,6 +14,7 @@ import (
 */
 type Container struct {
 	ID         string
+	ProbeID    string
 	Hostname   string
 	Image      string
 	IPAddress  string
@@ -39,6 +40,8 @@ var (
 	DB *sql.DB // DB
 
 	// Prepared queries
+	GetProbeIDStmt            *sql.Stmt
+	InsertProbeStmt           *sql.Stmt
 	InsertContainerStmt       *sql.Stmt
 	DeleteContainerStmt       *sql.Stmt
 	InsertStatStmt            *sql.Stmt
@@ -63,7 +66,15 @@ func InitSQL() {
 	l.Verbose("Connected to SQL database")
 
 	// Prepare DB queries
-	InsertContainerStmt, err = DB.Prepare("INSERT INTO containers VALUES (?,?,?,?,?)")
+	GetProbeIDStmt, err = DB.Prepare("SELECT id FROM probes WHERE name=?")
+	if err != nil {
+		l.Critical("Can't create InsertContainerStmt:", err)
+	}
+	InsertProbeStmt, err = DB.Prepare("INSERT INTO probes VALUES (DEFAULT,?)")
+	if err != nil {
+		l.Critical("Can't create InsertContainerStmt:", err)
+	}
+	InsertContainerStmt, err = DB.Prepare("INSERT INTO containers VALUES (?,?,?,?,?,?)")
 	if err != nil {
 		l.Critical("Can't create InsertContainerStmt:", err)
 	}
@@ -90,12 +101,42 @@ func InitSQL() {
 }
 
 /*
+	Get a probe ID from sql server
+	If does not exist: create it and return the probe ID
+*/
+func GetProbeID(name string) (int, error) {
+	var id int64  // Probe ID to return
+	var err error // Error handling
+
+	err = GetProbeIDStmt.QueryRow(name).Scan(&id)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			result, err := InsertProbeStmt.Exec(name)
+			if err != nil {
+				l.Error("GetProbeID:", err)
+				return 0, err
+			}
+			id, err = result.LastInsertId()
+			if err != nil {
+				l.Error("GetProbeID:", err)
+				return 0, err
+			}
+		} else {
+			l.Error("GetProbeID:", err)
+			return 0, err
+		}
+	}
+
+	return int(id), nil
+}
+
+/*
 	Insert a container
 */
 func (c *Container) Insert() error {
 	var err error // Error handling
 
-	_, err = InsertContainerStmt.Exec(c.ID, c.Hostname, c.Image, c.IPAddress, c.MacAddress)
+	_, err = InsertContainerStmt.Exec(c.ID, c.ProbeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress)
 
 	return err
 }
@@ -142,6 +183,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 		var tmpContainer Container
 
 		if err = rows.Scan(&tmpContainer.ID,
+			&tmpContainer.ProbeID,
 			&tmpContainer.Hostname,
 			&tmpContainer.Image,
 			&tmpContainer.IPAddress,
@@ -167,7 +209,7 @@ func GetContainerById(id string) (Container, error) {
 	var container Container // Container to return
 	var err error           // Error handling
 
-	err = GetContainerByIdStmt.QueryRow(id+"b").Scan(&container.ID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
+	err = GetContainerByIdStmt.QueryRow(id).Scan(&container.ID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
 	if err != nil {
 		l.Error("GetContainerById:", err)
 		return container, err
