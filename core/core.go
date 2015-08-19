@@ -1,15 +1,19 @@
 package core
 
 import (
+	"bytes"
+	"io/ioutil"
+	"net/http"
 	"time"
 )
 
-var ()
+var (
+	HTTPClient *http.Client = &http.Client{}
+)
 
 type Probe struct {
 	Name        string  `yaml:"name"`
-	IPAddress   string  `yaml:"ip-address"`
-	Port        string  `yaml:"port"`
+	URI         string  `yaml:"uri"`
 	APIPassword string  `yaml:"api-password"`
 	ReloadTime  float64 `yaml:"reload-time"`
 }
@@ -33,9 +37,38 @@ func Init() {
 	Loop for monitoring a probe
 */
 func (p *Probe) MonitorProbe() {
+	var resp *http.Response // Http response
+	var req *http.Request   // Http response
+	var body []byte         // Http body
+	var err error           // Error handling
+
 	for {
-		l.Verbose("Reloading", p.Name, "("+p.IPAddress+":"+p.Port+")")
-		// TODO
+		l.Verbose("Reloading", p.Name)
+
+		reqURI := p.URI + "/list"
+		l.Verbose("GET", reqURI)
+		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
+		if err != nil {
+			l.Error("MonitorProbe: Can't create", p.Name, "HTTP request:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+		req.Header.Set("Auth", p.APIPassword)
+		resp, err = HTTPClient.Do(req)
+		if err != nil {
+			l.Error("MonitorProbe: Can't get", p.Name, "container list:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+
+		body, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			l.Error("MonitorProbe: Can't get", p.Name, "container list body:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+
+		l.Silly("MonitorProbe:", "GET", reqURI, "body:\n", string(body))
 
 		time.Sleep(time.Second * time.Duration(p.ReloadTime))
 	}
