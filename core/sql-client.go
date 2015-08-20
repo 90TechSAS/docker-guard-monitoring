@@ -3,6 +3,8 @@ package core
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"net/http"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -41,7 +43,7 @@ type Stat struct {
 type Options struct {
 	Since  int
 	Before int
-	Limite int
+	Limit  int
 }
 
 /*
@@ -53,19 +55,16 @@ var (
 	ProbesID map[string]int
 
 	// Prepared queries
-	GetProbeIDStmt                         *sql.Stmt
-	InsertProbeStmt                        *sql.Stmt
-	InsertContainerStmt                    *sql.Stmt
-	DeleteContainerStmt                    *sql.Stmt
-	GetLastStatStmt                        *sql.Stmt
-	GetBetweenStatsStmt                    *sql.Stmt
-	InsertStatStmt                         *sql.Stmt
-	DeleteStatStmt                         *sql.Stmt
-	GetContainerByCIDStmt                  *sql.Stmt
-	GetStatsByContainerCIDStmt             *sql.Stmt
-	GetStatsByContainerCIDStmtBetween      *sql.Stmt
-	GetStatsByContainerCIDStmtLimit        *sql.Stmt
-	GetStatsByContainerCIDStmtBetweenLimit *sql.Stmt
+	GetProbeIDStmt             *sql.Stmt
+	InsertProbeStmt            *sql.Stmt
+	InsertContainerStmt        *sql.Stmt
+	DeleteContainerStmt        *sql.Stmt
+	GetLastStatStmt            *sql.Stmt
+	GetBetweenStatsStmt        *sql.Stmt
+	InsertStatStmt             *sql.Stmt
+	DeleteStatStmt             *sql.Stmt
+	GetContainerByCIDStmt      *sql.Stmt
+	GetStatsByContainerCIDStmt *sql.Stmt
 )
 
 func InitSQL() {
@@ -121,26 +120,6 @@ func InitSQL() {
 		l.Critical("Can't create GetContainerByIdStmt:", err)
 	}
 
-	/*
-		GetStatsByContainerCIDStmt
-	*/
-	GetStatsByContainerCIDStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?)")
-	if err != nil {
-		l.Critical("Can't create GetStatsByContainerCIDStmt:", err)
-	}
-	GetStatsByContainerCIDStmtBetween, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?) AND time BETWEEN ? AND ?")
-	if err != nil {
-		l.Critical("Can't create GetStatsByContainerCIDStmtBetween:", err)
-	}
-	GetStatsByContainerCIDStmtLimit, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?) LIMIT ?")
-	if err != nil {
-		l.Critical("Can't create GetStatsByContainerCIDStmtLimit:", err)
-	}
-	GetStatsByContainerCIDStmtBetweenLimit, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?) AND time BETWEEN ? AND ? LIMIT ?")
-	if err != nil {
-		l.Critical("Can't create GetStatsByContainerCIDStmtBetweenLimit:", err)
-	}
-
 	// Get probes ID
 	ProbesID = make(map[string]int)
 	for _, probe := range DGConfig.Probes {
@@ -150,6 +129,41 @@ func InitSQL() {
 		}
 		ProbesID[probe.Name] = id
 	}
+}
+
+/*
+	Parse Options
+*/
+func GetOptions(r *http.Request) Options {
+	var options Options // Returned options
+	var err error       // Error handling
+
+	// Get url parameters
+	oS := r.URL.Query().Get("since")
+	oB := r.URL.Query().Get("before")
+	oL := r.URL.Query().Get("limit")
+
+	// Format parameters to int and set options
+	oSInt, err := utils.S2I(oS)
+	if err != nil {
+		options.Since = -1
+	} else {
+		options.Since = oSInt
+	}
+	oBInt, err := utils.S2I(oB)
+	if err != nil {
+		options.Before = -1
+	} else {
+		options.Before = oBInt
+	}
+	oLInt, err := utils.S2I(oL)
+	if err != nil {
+		options.Limit = -1
+	} else {
+		options.Limit = oLInt
+	}
+
+	return options
 }
 
 /*
@@ -390,19 +404,43 @@ func (s *Stat) Delete() error {
 /*
 	Get stats by container id
 */
-func GetStatsByContainerCID(containerCID string, options Options) ([]Stat, error) {
-	var stats []Stat   // List of stats to return
-	var err error      // Erro handling
-	var tmpStat Stat   // Temporary stat
-	var rows *sql.Rows // Temporary sql rows
+func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
+	var stats []Stat    // List of stats to return
+	var err error       // Erro handling
+	var tmpStat Stat    // Temporary stat
+	var rows *sql.Rows  // Temporary sql rows
+	var sqlQuery string // SQL query
+	var oS, oB string   // SQL options
 
-	rows, err = GetStatsByContainerCIDStmt.Query(containerCID)
+	sqlQuery = "SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?)" // Base sql query
+
+	// Add options
+	if o.Since != -1 || o.Before != -1 {
+		if o.Since != -1 && o.Before != -1 {
+			oS = fmt.Sprintf("%d", o.Since)
+			oB = fmt.Sprintf("%d", o.Before)
+		} else if o.Since == -1 || o.Before != -1 {
+			oS = fmt.Sprintf("%d", 0)
+			oB = fmt.Sprintf("%d", o.Before)
+		} else if o.Since != -1 || o.Before == -1 {
+			oS = fmt.Sprintf("%d", o.Since)
+			oB = fmt.Sprintf("%d", 2000000000)
+		}
+		sqlQuery += fmt.Sprintf(" AND time BETWEEN %s AND %s", oS, oB)
+	}
+	if o.Limit != -1 {
+		sqlQuery += fmt.Sprintf(" LIMIT %d", o.Limit)
+	}
+
+	// Exec query
+	rows, err = DB.Query(sqlQuery, containerCID)
 	if err != nil {
 		l.Error("GetStatsByContainerCID:", err)
 		return nil, err
 	}
 	defer rows.Close()
 
+	// Get results
 	for rows.Next() {
 		err = rows.Scan(&tmpStat.ContainerID, &tmpStat.Time, &tmpStat.SizeRootFs, &tmpStat.SizeRw, &tmpStat.SizeMemory, &tmpStat.Running)
 		if err != nil {

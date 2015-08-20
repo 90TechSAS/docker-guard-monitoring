@@ -45,7 +45,7 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	var err error                   // Error handling
 
 	// Get container ID
-	ContainerIDVar := muxVars["id"]
+	ContainerIDVar := muxVars["cid"]
 	if err != nil {
 		http.Error(w, http.StatusText(400), 400)
 		return

@@ -38,13 +38,13 @@ func RunHTTPServer() {
 	r_GET := r1.Methods("GET").Subrouter()
 
 	r_GET.HandleFunc("/containers", HTTPHandlerContainers)
-	r_GET.HandleFunc("/containers/{id:[0-9a-z]+}", HTTPHandlerContainerCID)
+	r_GET.HandleFunc("/containers/{cid:[0-9a-z]+}", HTTPHandlerContainerCID)
 	r_GET.HandleFunc("/containers/probe/{id:[0-9]+}", HTTPHandlerContainersProbeID)
 	r_GET.HandleFunc("/probes", HTTPHandlerProbes)
 	r_GET.HandleFunc("/probes/{id:[0-9]+}", HTTPHandlerProbesID)
 	r_GET.HandleFunc("/stats", HTTPHandlerStats)
 	r_GET.HandleFunc("/stats/probe/{id:[0-9]+}", HTTPHandlerStatsProbeID)
-	r_GET.HandleFunc("/stats/container/{id:[0-9a-z]+}", HTTPHandlerStatsCID)
+	r_GET.HandleFunc("/stats/container/{cid:[0-9a-z]+}", HTTPHandlerStatsCID)
 	http.Handle("/", r)
 
 	http.ListenAndServe(DGConfig.DockerGuard.API.ListenInterface+":"+DGConfig.DockerGuard.API.ListenPort, r)

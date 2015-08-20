@@ -66,15 +66,14 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 	var returnedStats []Stat  // Returned stats
 	var muxVars = mux.Vars(r) // Mux Vars
 	var err error             // Error handling
+	var options Options       // Options
 
-	// Get container ID
-	ContainerIDVar := muxVars["id"]
-	if err != nil {
-		http.Error(w, http.StatusText(400), 400)
-		return
-	}
+	options = GetOptions(r)
 
-	returnedStats, err = GetStatsByContainerCID(ContainerIDVar, Options{-1, -1, -1})
+	// Get mux Vars
+	containerCIDVar := muxVars["cid"]
+
+	returnedStats, err = GetStatsByContainerCID(containerCIDVar, options)
 	if err != nil {
 		l.Error("HTTPHandlerStatsCID: Failed to get stats:", err)
 		http.Error(w, http.StatusText(500), 500)
