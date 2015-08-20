@@ -48,7 +48,8 @@ var (
 	InsertProbeStmt            *sql.Stmt
 	InsertContainerStmt        *sql.Stmt
 	DeleteContainerStmt        *sql.Stmt
-	GetContainerLastStatStmt   *sql.Stmt
+	GetLastStatStmt            *sql.Stmt
+	GetBetweenStatsStmt        *sql.Stmt
 	InsertStatStmt             *sql.Stmt
 	DeleteStatStmt             *sql.Stmt
 	GetContainerByCIDStmt      *sql.Stmt
@@ -88,7 +89,11 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create DeleteContainerStmt:", err)
 	}
-	GetContainerLastStatStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=? ORDER BY time DESC LIMIT 1")
+	GetLastStatStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=? ORDER BY time DESC LIMIT 1")
+	if err != nil {
+		l.Critical("Can't create DeleteContainerStmt:", err)
+	}
+	GetBetweenStatsStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=? AND time BETWEEN ? AND ? ORDER BY time")
 	if err != nil {
 		l.Critical("Can't create DeleteContainerStmt:", err)
 	}
@@ -193,7 +198,7 @@ func (c *Container) GetLastStat() (Stat, error) {
 	var stat Stat // Returned stat
 	var err error // Error handling
 
-	err = GetContainerLastStatStmt.QueryRow(c.ID).Scan(&stat.ContainerID, &stat.Time, &stat.SizeRootFs, &stat.SizeRw, &stat.SizeMemory, &stat.Running)
+	err = GetLastStatStmt.QueryRow(c.ID).Scan(&stat.ContainerID, &stat.Time, &stat.SizeRootFs, &stat.SizeRw, &stat.SizeMemory, &stat.Running)
 	if err != nil {
 		if err.Error() != "sql: no rows in result set" {
 			l.Error("GetLastStat:", err)
@@ -202,6 +207,47 @@ func (c *Container) GetLastStat() (Stat, error) {
 	}
 
 	return stat, err
+}
+
+/*
+	Get container's stats between two dates
+*/
+func (c *Container) GetBetweenStats(begin, end int) ([]Stat, error) {
+	var stats []Stat   // Returned stats
+	var rows *sql.Rows // SQL Rows
+	var err error      // Error handling
+
+	rows, err = GetBetweenStatsStmt.Query(c.ID, begin, end)
+	if err != nil {
+		if err.Error() != "sql: no rows in result set" {
+			l.Error("GetBetweenStats:", err)
+		}
+		return stats, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var tmpStat Stat
+
+		if err = rows.Scan(
+			&tmpStat.ContainerID,
+			&tmpStat.Time,
+			&tmpStat.SizeRootFs,
+			&tmpStat.SizeRw,
+			&tmpStat.SizeMemory,
+			&tmpStat.Running); err != nil {
+			l.Error("GetBetweenStats: Can't scan row:", err)
+			return stats, err
+		}
+
+		stats = append(stats, tmpStat)
+	}
+	if err = rows.Err(); err != nil {
+		l.Error("GetBetweenStatStmt: Rows error:", err)
+		return stats, err
+	}
+
+	return stats, err
 }
 
 /*
