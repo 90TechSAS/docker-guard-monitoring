@@ -36,6 +36,15 @@ type Stat struct {
 }
 
 /*
+
+ */
+type Options struct {
+	Since  int
+	Before int
+	Limite int
+}
+
+/*
 	SQL Variables
 */
 var (
