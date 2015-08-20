@@ -7,3 +7,6 @@ docker
 # Ignore config file
 config.yaml*
 !config.yaml.example
+
+# Ignore TODO
+TODO

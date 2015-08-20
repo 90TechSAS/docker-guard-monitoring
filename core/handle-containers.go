@@ -18,13 +18,17 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	var tmpContainers []Container             // Temporary container list
 	var returnedContainers []dguard.Container // Temporary container list
 	var err error                             // Error handling
+	var probeid string                        // HTTP GET parameter(s)
+	var probeidInt int                        // HTTP GET parameter(s) to int
 
 	// Get HTTP query
 	query := r.URL.Query()
 
+	// Get HTTP GET parameters
+	probeid = query.Get("probeid")
+
 	// Get probe ID
-	probeid := query.Get("probeid")
-	probeidInt, err := utils.S2I(probeid)
+	probeidInt, err = utils.S2I(probeid)
 	if probeid == "" || err != nil {
 		http.Error(w, http.StatusText(400), 400)
 		return
