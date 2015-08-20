@@ -10,6 +10,11 @@ import (
 */
 type Config struct {
 	DockerGuard struct {
+		API struct {
+			ListenInterface string `yaml:"listen-interface"`
+			ListenPort      string `yaml:"listen-port"`
+			APIPassword     string `yaml:"api-password"`
+		}
 		SQLServer struct {
 			IP   string `yaml:"ip"`
 			Port int    `yaml:"port"`

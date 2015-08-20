@@ -38,11 +38,7 @@ func Init() {
 	}
 
 	// Launch API
-	// Temporary dirty loop to avoid program shutdown
-	// TODO: API
-	for {
-		time.Sleep(time.Minute)
-	}
+	RunHTTPServer()
 }
 
 /*

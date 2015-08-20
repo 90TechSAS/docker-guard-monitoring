@@ -1,4 +1,8 @@
 docker-guard:
+  api:
+    listen-interface: "0.0.0.0"
+    listen-port: "8123"
+    api-password: "changeme"
   sql-server:
     ip: 127.0.0.1
     port: 3306
