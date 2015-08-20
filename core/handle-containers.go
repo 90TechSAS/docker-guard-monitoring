@@ -38,7 +38,7 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 /*
 	Return container infos
 */
-func HTTPHandlerContainerID(w http.ResponseWriter, r *http.Request) {
+func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	var returnStr string            // HTTP Response body
 	var returnedContainer Container // Returned container
 	var muxVars = mux.Vars(r)       // Mux Vars
