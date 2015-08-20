@@ -38,6 +38,7 @@ func RunHTTPServer() {
 	r_GET := r1.Methods("GET").Subrouter()
 
 	r_GET.HandleFunc("/probes", HTTPHandlerProbes)
+	r_GET.HandleFunc("/containers", HTTPHandlerContainers)
 	http.Handle("/", r)
 
 	http.ListenAndServe(DGConfig.DockerGuard.API.ListenInterface+":"+DGConfig.DockerGuard.API.ListenPort, r)

@@ -14,9 +14,9 @@ func I2S(i int) string {
 /*
 	Convert string => int
 */
-func S2I(s string) int {
-	i, _ := strconv.Atoi(s)
-	return i
+func S2I(s string) (int, error) {
+	i, err := strconv.Atoi(s)
+	return i, err
 }
 
 /*

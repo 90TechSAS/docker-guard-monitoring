@@ -6,6 +6,9 @@ import (
 	"net/http"
 )
 
+/*
+	Return the probes map
+*/
 func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 	var returnStr string // HTTP Response body
 
