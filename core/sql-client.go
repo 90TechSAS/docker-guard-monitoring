@@ -48,6 +48,7 @@ var (
 	InsertProbeStmt            *sql.Stmt
 	InsertContainerStmt        *sql.Stmt
 	DeleteContainerStmt        *sql.Stmt
+	GetContainerLastStatStmt   *sql.Stmt
 	InsertStatStmt             *sql.Stmt
 	DeleteStatStmt             *sql.Stmt
 	GetContainerByCIDStmt      *sql.Stmt
@@ -84,6 +85,10 @@ func InitSQL() {
 		l.Critical("Can't create InsertContainerStmt:", err)
 	}
 	DeleteContainerStmt, err = DB.Prepare("DELETE FROM containers WHERE containerid=?")
+	if err != nil {
+		l.Critical("Can't create DeleteContainerStmt:", err)
+	}
+	GetContainerLastStatStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=? ORDER BY time DESC LIMIT 1")
 	if err != nil {
 		l.Critical("Can't create DeleteContainerStmt:", err)
 	}
@@ -179,6 +184,24 @@ func (c *Container) Delete() error {
 	_, err = DeleteContainerStmt.Exec(c.CID)
 
 	return err
+}
+
+/*
+	Get container's last stat
+*/
+func (c *Container) GetLastStat() (Stat, error) {
+	var stat Stat // Returned stat
+	var err error // Error handling
+
+	err = GetContainerLastStatStmt.QueryRow(c.ID).Scan(&stat.ContainerID, &stat.Time, &stat.SizeRootFs, &stat.SizeRw, &stat.SizeMemory, &stat.Running)
+	if err != nil {
+		if err.Error() != "sql: no rows in result set" {
+			l.Error("GetLastStat:", err)
+		}
+		return stat, err
+	}
+
+	return stat, err
 }
 
 /*
