@@ -60,7 +60,6 @@ func HTTPHandlerProbesID(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(400), 400)
 			return
 		}
-
 		if probeID == probeIDVar {
 			returnProbe = SProbe{probeID, key}
 			probeFound = true
