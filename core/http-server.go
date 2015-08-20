@@ -38,6 +38,7 @@ func RunHTTPServer() {
 	r_GET := r1.Methods("GET").Subrouter()
 
 	r_GET.HandleFunc("/probes", HTTPHandlerProbes)
+	r_GET.HandleFunc("/probes/{id:[0-9]+}", HTTPHandlerProbesID)
 	r_GET.HandleFunc("/containers", HTTPHandlerContainers)
 	r_GET.HandleFunc("/stats", HTTPHandlerStats)
 	http.Handle("/", r)
