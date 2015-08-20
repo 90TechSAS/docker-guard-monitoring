@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	dguard "github.com/90TechSAS/libgo-docker-guard"
 	"github.com/gorilla/mux"
 
 	"../utils"
@@ -20,6 +19,7 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	var err error                      // Error handling
 
 	http.Error(w, http.StatusText(501), 501) // Not implemented
+	return
 
 	// returnedContainers => json
 	tmpJson, err := json.Marshal(returnedContainers)
