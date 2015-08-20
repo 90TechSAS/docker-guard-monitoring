@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 /*
@@ -60,17 +62,29 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 	Return containers stats by container ID
 */
 func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
-	var returnStr string     // HTTP Response body
-	var err error            // Error handling
-	var returnedStats []Stat // Returned stats
+	var returnStr string      // HTTP Response body
+	var returnedStats []Stat  // Returned stats
+	var muxVars = mux.Vars(r) // Mux Vars
+	var err error             // Error handling
 
-	http.Error(w, http.StatusText(501), 501) // Not implemented
-	return
+	// Get container ID
+	ContainerIDVar := muxVars["id"]
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	returnedStats, err = GetStatsByContainerCID(ContainerIDVar)
+	if err != nil {
+		l.Error("HTTPHandlerStatsCID: Failed to get stats:", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
 
 	// returnedStats => json
 	tmpJson, err := json.Marshal(returnedStats)
 	if err != nil {
-		l.Error("HTTPHandlerStatsCID: Failed to marshal struct")
+		l.Error("HTTPHandlerStatsCID: Failed to marshal struct:", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}

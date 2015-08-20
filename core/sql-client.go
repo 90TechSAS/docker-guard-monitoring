@@ -53,7 +53,6 @@ var (
 	InsertStatStmt             *sql.Stmt
 	DeleteStatStmt             *sql.Stmt
 	GetContainerByCIDStmt      *sql.Stmt
-	GetStatsByContainerIdStmt  *sql.Stmt
 	GetStatsByContainerCIDStmt *sql.Stmt
 )
 
@@ -109,11 +108,7 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create GetContainerByIdStmt:", err)
 	}
-	GetStatsByContainerIdStmt, err = DB.Prepare("SELECT * FROM containers WHERE id=?")
-	if err != nil {
-		l.Critical("Can't create GetStatsByContainerIdStmt:", err)
-	}
-	GetStatsByContainerCIDStmt, err = DB.Prepare("SELECT * FROM containers WHERE containerid=?")
+	GetStatsByContainerCIDStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?)")
 	if err != nil {
 		l.Critical("Can't create GetStatsByContainerCIDStmt:", err)
 	}
@@ -367,15 +362,15 @@ func (s *Stat) Delete() error {
 /*
 	Get stats by container id
 */
-func GetStatsByContainerID(containerID string) ([]Stat, error) {
+func GetStatsByContainerCID(containerCID string) ([]Stat, error) {
 	var stats []Stat   // List of stats to return
 	var err error      // Erro handling
 	var tmpStat Stat   // Temporary stat
 	var rows *sql.Rows // Temporary sql rows
 
-	rows, err = GetStatsByContainerIdStmt.Query(containerID)
+	rows, err = GetStatsByContainerCIDStmt.Query(containerCID)
 	if err != nil {
-		l.Error("GetStatsByContainerID:", err)
+		l.Error("GetStatsByContainerCID:", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -383,14 +378,14 @@ func GetStatsByContainerID(containerID string) ([]Stat, error) {
 	for rows.Next() {
 		err = rows.Scan(&tmpStat.ContainerID, &tmpStat.Time, &tmpStat.SizeRootFs, &tmpStat.SizeRw, &tmpStat.SizeMemory, &tmpStat.Running)
 		if err != nil {
-			l.Error("GetStatsByContainerID:", err)
+			l.Error("GetStatsByContainerCID:", err)
 			return nil, err
 		}
 		stats = append(stats, tmpStat)
 	}
 	err = rows.Err()
 	if err != nil {
-		l.Error("GetStatsByContainerID:", err)
+		l.Error("GetStatsByContainerCID:", err)
 		return nil, err
 	}
 
