@@ -16,7 +16,7 @@ import (
 func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	var returnStr string                      // HTTP Response body
 	var tmpContainers []Container             // Temporary container list
-	var returnedContainers []dguard.Container // Temporary container list
+	var returnedContainers []dguard.Container // Returned container list
 	var err error                             // Error handling
 	var probeid string                        // HTTP GET parameter(s)
 	var probeidInt int                        // HTTP GET parameter(s) to int
@@ -64,6 +64,40 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 
 		returnedContainers = append(returnedContainers, tmpC)
 	}
+
+	// returnedContainers => json
+	tmpJson, _ := json.Marshal(returnedContainers)
+
+	// Add json to the returned string
+	returnStr = string(tmpJson)
+
+	fmt.Fprint(w, returnStr)
+}
+
+/*
+	Return container infos
+*/
+func HTTPHandlerContainerID(w http.ResponseWriter, r *http.Request) {
+	var returnStr string                   // HTTP Response body
+	var returnedContainer dguard.Container // Returned container
+	// var err error                          // Error handling
+
+	// returnedContainer => json
+	tmpJson, _ := json.Marshal(returnedContainer)
+
+	// Add json to the returned string
+	returnStr = string(tmpJson)
+
+	fmt.Fprint(w, returnStr)
+}
+
+/*
+	Return probe's containers infos
+*/
+func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
+	var returnStr string                      // HTTP Response body
+	var returnedContainers []dguard.Container // Returned container list
+	// var err error                             // Error handling
 
 	// returnedContainers => json
 	tmpJson, _ := json.Marshal(returnedContainers)
