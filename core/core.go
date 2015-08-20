@@ -34,7 +34,7 @@ func Init() {
 
 	// Launch probe monitors
 	for _, probe := range DGConfig.Probes {
-		go probe.MonitorProbe()
+		go MonitorProbe(probe)
 	}
 
 	// Launch API
@@ -44,7 +44,7 @@ func Init() {
 /*
 	Loop for monitoring a probe
 */
-func (p *Probe) MonitorProbe() {
+func MonitorProbe(p Probe) {
 	var resp *http.Response                     // Http response
 	var req *http.Request                       // Http response
 	var body []byte                             // Http body
@@ -56,7 +56,7 @@ func (p *Probe) MonitorProbe() {
 	// Get probe ID in DB, create it if does not exists
 	probeID, err = GetProbeID(p.Name)
 	if err != nil {
-		l.Critical("MonitorProbe: Can't get probe ID", err)
+		l.Critical("MonitorProbe ("+p.Name+"): Can't get probe ID", err)
 	}
 
 	// Reloading loop
@@ -69,7 +69,7 @@ func (p *Probe) MonitorProbe() {
 		l.Debug("GET", reqURI)
 		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
 		if err != nil {
-			l.Error("MonitorProbe: Can't create", p.Name, "HTTP request:", err)
+			l.Error("MonitorProbe ("+p.Name+"): Can't create", p.Name, "HTTP request:", err)
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
@@ -78,7 +78,7 @@ func (p *Probe) MonitorProbe() {
 		// Do request
 		resp, err = HTTPClient.Do(req)
 		if err != nil {
-			l.Error("MonitorProbe: Can't get", p.Name, "container list:", err)
+			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list:", err)
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
@@ -86,23 +86,23 @@ func (p *Probe) MonitorProbe() {
 		// Get request body
 		body, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
-			l.Error("MonitorProbe: Can't get", p.Name, "container list body:", err)
+			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list body:", err)
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
 
-		l.Silly("MonitorProbe:", "GET", reqURI, "body:\n", string(body))
+		l.Silly("MonitorProbe ("+p.Name+"):", "GET", reqURI, "body:\n", string(body))
 
 		// Parse body
 		err = json.Unmarshal([]byte(body), &containers)
 		if err != nil {
-			l.Error("MonitorProbe: Parsing container list:", err)
+			l.Error("MonitorProbe ("+p.Name+"): Parsing container list:", err)
 		}
 
 		// Remove in DB old removed containers
 		dbContainers, err = GetContainersBy("probeid", probeID)
 		if err != nil {
-			l.Error("MonitorProbe: Can't get", p.Name, "container list in DB")
+			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list in DB")
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
@@ -130,11 +130,11 @@ func (p *Probe) MonitorProbe() {
 					sqlContainer := Container{0, c.ID, probeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
 					id, err = sqlContainer.Insert()
 					if err != nil {
-						l.Error("MonitorProbe: container insert:", err)
+						l.Error("MonitorProbe ("+p.Name+"): container insert:", err)
 						continue
 					}
 				} else {
-					l.Error("MonitorProbe: GetContainerById:", err)
+					l.Error("MonitorProbe ("+p.Name+"): GetContainerById:", err)
 					continue
 				}
 			} else {
@@ -145,7 +145,7 @@ func (p *Probe) MonitorProbe() {
 			sqlStat := Stat{int(id), int64(c.Time), uint64(c.SizeRootFs), uint64(c.SizeRw), uint64(c.MemoryUsed), c.Running}
 			err = sqlStat.Insert()
 			if err != nil {
-				l.Error("MonitorProbe: stat insert:", err)
+				l.Error("MonitorProbe ("+p.Name+"): stat insert:", err)
 				continue
 			}
 		}
