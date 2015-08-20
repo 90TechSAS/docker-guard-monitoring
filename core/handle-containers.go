@@ -19,6 +19,8 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	var returnedContainers []dguard.Container // Returned container
 	// var err error                          // Error handling
 
+	http.Error(w, http.StatusText(501), 501) // Not implemented
+
 	// returnedContainers => json
 	tmpJson, _ := json.Marshal(returnedContainers)
 
@@ -32,11 +34,31 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	Return container infos
 */
 func HTTPHandlerContainerID(w http.ResponseWriter, r *http.Request) {
-	var returnStr string                   // HTTP Response body
-	var returnedContainer dguard.Container // Returned container
-	// var err error                          // Error handling
+	var returnStr string            // HTTP Response body
+	var returnedContainer Container // Returned container
+	var muxVars = mux.Vars(r)       // Mux Vars
+	var err error                   // Error handling
+
+	// Get container ID
+	ContainerIDVar := muxVars["id"]
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	// Get container
+	containers, err := GetContainersBy("containerid", ContainerIDVar)
+	if err != nil || len(containers) > 1 {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	if err != nil || len(containers) == 0 {
+		http.Error(w, http.StatusText(404), 404)
+		return
+	}
 
 	// returnedContainer => json
+	returnedContainer = containers[0]
 	tmpJson, _ := json.Marshal(returnedContainer)
 
 	// Add json to the returned string
