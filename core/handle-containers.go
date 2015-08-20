@@ -71,11 +71,10 @@ func HTTPHandlerContainerID(w http.ResponseWriter, r *http.Request) {
 	Return probe's containers infos
 */
 func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
-	var returnStr string                      // HTTP Response body
-	var tmpContainers []Container             // Temporary container list
-	var returnedContainers []dguard.Container // Returned container list
-	var muxVars = mux.Vars(r)                 // Mux Vars
-	var err error                             // Error handling
+	var returnStr string               // HTTP Response body
+	var returnedContainers []Container // Returned container list
+	var muxVars = mux.Vars(r)          // Mux Vars
+	var err error                      // Error handling
 
 	probeIDVar, err := utils.S2I(muxVars["id"])
 	if err != nil {
@@ -84,34 +83,10 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get containers by probe ID
-	tmpContainers, err = GetContainersBy("probeid", probeIDVar)
+	returnedContainers, err = GetContainersBy("probeid", probeIDVar)
 	if err != nil {
 		http.Error(w, http.StatusText(500), 500)
 		return
-	}
-
-	// Get containers last stats
-	for _, c := range tmpContainers {
-		var tmpC dguard.Container
-		var tmpStat Stat
-
-		tmpStat, err = c.GetLastStat()
-		if err != nil {
-			l.Critical("err:", err)
-		}
-
-		tmpC.ID = c.CID
-		tmpC.Hostname = c.Hostname
-		tmpC.Image = c.Image
-		tmpC.IPAddress = c.IPAddress
-		tmpC.MacAddress = c.MacAddress
-		tmpC.SizeRootFs = float64(tmpStat.SizeRootFs)
-		tmpC.SizeRw = float64(tmpStat.SizeRw)
-		tmpC.MemoryUsed = float64(tmpStat.SizeMemory)
-		tmpC.Running = tmpStat.Running
-		tmpC.Time = float64(tmpStat.Time)
-
-		returnedContainers = append(returnedContainers, tmpC)
 	}
 
 	// returnedContainers => json
