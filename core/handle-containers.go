@@ -15,14 +15,19 @@ import (
 	Return containers infos
 */
 func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
-	var returnStr string                      // HTTP Response body
-	var returnedContainers []dguard.Container // Returned container
-	// var err error                          // Error handling
+	var returnStr string               // HTTP Response body
+	var returnedContainers []Container // Returned container
+	var err error                      // Error handling
 
 	http.Error(w, http.StatusText(501), 501) // Not implemented
 
 	// returnedContainers => json
-	tmpJson, _ := json.Marshal(returnedContainers)
+	tmpJson, err := json.Marshal(returnedContainers)
+	if err != nil {
+		l.Error("HTTPHandlerContainers: Failed to marshal struct")
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
 
 	// Add json to the returned string
 	returnStr = string(tmpJson)
@@ -59,7 +64,12 @@ func HTTPHandlerContainerID(w http.ResponseWriter, r *http.Request) {
 
 	// returnedContainer => json
 	returnedContainer = containers[0]
-	tmpJson, _ := json.Marshal(returnedContainer)
+	tmpJson, err := json.Marshal(returnedContainer)
+	if err != nil {
+		l.Error("HTTPHandlerContainerID: Failed to marshal struct")
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
 
 	// Add json to the returned string
 	returnStr = string(tmpJson)
@@ -76,6 +86,7 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	var muxVars = mux.Vars(r)          // Mux Vars
 	var err error                      // Error handling
 
+	// Get probe ID
 	probeIDVar, err := utils.S2I(muxVars["id"])
 	if err != nil {
 		http.Error(w, http.StatusText(400), 400)
@@ -90,7 +101,12 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// returnedContainers => json
-	tmpJson, _ := json.Marshal(returnedContainers)
+	tmpJson, err := json.Marshal(returnedContainers)
+	if err != nil {
+		l.Error("HTTPHandlerContainersProbeID: Failed to marshal struct")
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
 
 	// Add json to the returned string
 	returnStr = string(tmpJson)
