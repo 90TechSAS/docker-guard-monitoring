@@ -53,16 +53,19 @@ var (
 	ProbesID map[string]int
 
 	// Prepared queries
-	GetProbeIDStmt             *sql.Stmt
-	InsertProbeStmt            *sql.Stmt
-	InsertContainerStmt        *sql.Stmt
-	DeleteContainerStmt        *sql.Stmt
-	GetLastStatStmt            *sql.Stmt
-	GetBetweenStatsStmt        *sql.Stmt
-	InsertStatStmt             *sql.Stmt
-	DeleteStatStmt             *sql.Stmt
-	GetContainerByCIDStmt      *sql.Stmt
-	GetStatsByContainerCIDStmt *sql.Stmt
+	GetProbeIDStmt                         *sql.Stmt
+	InsertProbeStmt                        *sql.Stmt
+	InsertContainerStmt                    *sql.Stmt
+	DeleteContainerStmt                    *sql.Stmt
+	GetLastStatStmt                        *sql.Stmt
+	GetBetweenStatsStmt                    *sql.Stmt
+	InsertStatStmt                         *sql.Stmt
+	DeleteStatStmt                         *sql.Stmt
+	GetContainerByCIDStmt                  *sql.Stmt
+	GetStatsByContainerCIDStmt             *sql.Stmt
+	GetStatsByContainerCIDStmtBetween      *sql.Stmt
+	GetStatsByContainerCIDStmtLimit        *sql.Stmt
+	GetStatsByContainerCIDStmtBetweenLimit *sql.Stmt
 )
 
 func InitSQL() {
@@ -117,9 +120,25 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create GetContainerByIdStmt:", err)
 	}
+
+	/*
+		GetStatsByContainerCIDStmt
+	*/
 	GetStatsByContainerCIDStmt, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?)")
 	if err != nil {
 		l.Critical("Can't create GetStatsByContainerCIDStmt:", err)
+	}
+	GetStatsByContainerCIDStmtBetween, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?) AND time BETWEEN ? AND ?")
+	if err != nil {
+		l.Critical("Can't create GetStatsByContainerCIDStmtBetween:", err)
+	}
+	GetStatsByContainerCIDStmtLimit, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?) LIMIT ?")
+	if err != nil {
+		l.Critical("Can't create GetStatsByContainerCIDStmtLimit:", err)
+	}
+	GetStatsByContainerCIDStmtBetweenLimit, err = DB.Prepare("SELECT * FROM stats WHERE containerid=(SELECT id FROM containers WHERE containerid=?) AND time BETWEEN ? AND ? LIMIT ?")
+	if err != nil {
+		l.Critical("Can't create GetStatsByContainerCIDStmtBetweenLimit:", err)
 	}
 
 	// Get probes ID
@@ -371,7 +390,7 @@ func (s *Stat) Delete() error {
 /*
 	Get stats by container id
 */
-func GetStatsByContainerCID(containerCID string) ([]Stat, error) {
+func GetStatsByContainerCID(containerCID string, options Options) ([]Stat, error) {
 	var stats []Stat   // List of stats to return
 	var err error      // Erro handling
 	var tmpStat Stat   // Temporary stat
