@@ -40,17 +40,23 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	// Get containers last stats
 	for _, c := range tmpContainers {
 		var tmpC dguard.Container
+		var tmpStat Stat
+
+		tmpStat, err = c.GetLastStat()
+		if err != nil {
+			l.Critical("err:", err)
+		}
 
 		tmpC.ID = c.CID
 		tmpC.Hostname = c.Hostname
 		tmpC.Image = c.Image
 		tmpC.IPAddress = c.IPAddress
 		tmpC.MacAddress = c.MacAddress
-		// tmpC.SizeRootFs = c.
-		// tmpC.SizeRw = c.
-		// tmpC.MemoryUsed = c.
-		// tmpC.Running = c.
-		// tmpC.Time = c.
+		tmpC.SizeRootFs = float64(tmpStat.SizeRootFs)
+		tmpC.SizeRw = float64(tmpStat.SizeRw)
+		tmpC.MemoryUsed = float64(tmpStat.SizeMemory)
+		tmpC.Running = tmpStat.Running
+		tmpC.Time = float64(tmpStat.Time)
 
 		returnedContainers = append(returnedContainers, tmpC)
 	}
