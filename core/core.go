@@ -37,8 +37,11 @@ func Init() {
 		go MonitorProbe(probe)
 	}
 
+	// Launch event controller
+	EventController()
+
 	// Launch API
-	RunHTTPServer()
+	HTTPServer()
 }
 
 /*

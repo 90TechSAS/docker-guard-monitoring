@@ -32,7 +32,7 @@ func HTTPSecureAPI(r *http.Request, rm *mux.RouteMatch) bool {
 /*
 	Run HTTP Server
 */
-func RunHTTPServer() {
+func HTTPServer() {
 	r := mux.NewRouter()
 	r1 := r.MatcherFunc(HTTPURILogger).MatcherFunc(HTTPSecureAPI).Subrouter()
 	r_GET := r1.Methods("GET").Subrouter()
