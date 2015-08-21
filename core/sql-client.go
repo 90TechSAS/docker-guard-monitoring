@@ -55,8 +55,8 @@ type StatPopulated struct {
 }
 
 /*
-
- */
+	HTTP GET options
+*/
 type Options struct {
 	Since  int
 	Before int
@@ -564,14 +564,14 @@ func GetStatsByContainerProbeID(probeID string, o Options) ([]Stat, error) {
 	Get stats populated by probe id
 */
 func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, error) {
-	var statsP []StatPopulated // List of stats populated to return
-	var err error              // Erro handling
-	var containerIDs []int     // Array of container ID
-	var tmpContainer Container // Temporary container
-	var tmpStatP StatPopulated // Temporary stat populated
-	var rows *sql.Rows         // Temporary sql rows
-	var sqlQuery string        // SQL query
-	var oS, oB string          // SQL options
+	var statsP []StatPopulated    // List of stats populated to return
+	var err error                 // Erro handling
+	var tmpContainer Container    // Temporary container
+	var tmpContainers []Container // Temporary container
+	var tmpStatP StatPopulated    // Temporary stat populated
+	var rows *sql.Rows            // Temporary sql rows
+	var sqlQuery string           // SQL query
+	var oS, oB string             // SQL options
 
 	sqlQuery = "SELECT time,sizerootfs,sizerw,sizememory,running FROM stats WHERE containerid=?" // Base sql query
 
@@ -615,7 +615,7 @@ func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, er
 			l.Error("GetStatsByContainerProbeID:", err)
 			return nil, err
 		}
-		containerIDs = append(containerIDs, tmpContainer.ID)
+		tmpContainers = append(tmpContainers, tmpContainer)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -624,9 +624,9 @@ func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, er
 	}
 
 	// Get containers' stats populated
-	for _, id := range containerIDs {
+	for _, container := range tmpContainers {
 		// Exec query
-		rows, err = DB.Query(sqlQuery, id)
+		rows, err = DB.Query(sqlQuery, container.ID)
 		if err != nil {
 			l.Error("GetStatsByContainerProbeID:", err)
 			return nil, err
@@ -645,6 +645,13 @@ func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, er
 				l.Error("GetStatsByContainerProbeID:", err)
 				return nil, err
 			}
+			tmpStatP.CID = container.CID
+			tmpStatP.ProbeID = container.ProbeID
+			tmpStatP.Hostname = container.Hostname
+			tmpStatP.Image = container.Image
+			tmpStatP.IPAddress = container.IPAddress
+			tmpStatP.MacAddress = container.MacAddress
+
 			statsP = append(statsP, tmpStatP)
 		}
 		err = rows.Err()

@@ -38,28 +38,52 @@ func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {
 */
 func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 	var returnStr string      // HTTP Response body
-	var returnedStats []Stat  // Returned stats
 	var muxVars = mux.Vars(r) // Mux Vars
-	var err error             // Error handling
+	var tmpJson []byte        // Temporary JSON
 	var options Options       // Options
+	var err error             // Error handling
 
 	options = GetOptions(r)
 
 	// Get mux Vars
 	probeIDVar := muxVars["id"]
 
-	returnedStats, err = GetStatsByContainerProbeID(probeIDVar, options)
-	if err != nil {
-		l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
+	// Check if populate is wanted
+	populate := r.URL.Query().Get("populate")
+	if populate == "true" {
+		var returnedStats []StatPopulated // Returned stats
+		returnedStats, err = GetStatsPByContainerProbeID(probeIDVar, options)
+		if err != nil {
+			l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
+			http.Error(w, http.StatusText(500), 500)
+			return
+		}
 
-	// returnedStats => json
-	tmpJson, err := json.Marshal(returnedStats)
-	if err != nil {
-		l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
-		http.Error(w, http.StatusText(500), 500)
+		// returnedStats => json
+		tmpJson, err = json.Marshal(returnedStats)
+		if err != nil {
+			l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
+			http.Error(w, http.StatusText(500), 500)
+			return
+		}
+	} else if populate == "false" || populate == "" {
+		var returnedStats []Stat // Returned stats
+		returnedStats, err = GetStatsByContainerProbeID(probeIDVar, options)
+		if err != nil {
+			l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
+			http.Error(w, http.StatusText(500), 500)
+			return
+		}
+
+		// returnedStats => json
+		tmpJson, err = json.Marshal(returnedStats)
+		if err != nil {
+			l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
+			http.Error(w, http.StatusText(500), 500)
+			return
+		}
+	} else {
+		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
