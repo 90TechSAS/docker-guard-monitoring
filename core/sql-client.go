@@ -519,7 +519,7 @@ func GetStatsByContainerProbeID(probeID string, o Options) ([]Stat, error) {
 		// Exec query
 		rows, err = DB.Query(sqlQuery, id)
 		if err != nil {
-			l.Error("GetStatsByContainerCID:", err)
+			l.Error("GetStatsByContainerProbeID:", err)
 			return nil, err
 		}
 		defer rows.Close()
@@ -528,14 +528,14 @@ func GetStatsByContainerProbeID(probeID string, o Options) ([]Stat, error) {
 		for rows.Next() {
 			err = rows.Scan(&tmpStat.ContainerID, &tmpStat.Time, &tmpStat.SizeRootFs, &tmpStat.SizeRw, &tmpStat.SizeMemory, &tmpStat.Running)
 			if err != nil {
-				l.Error("GetStatsByContainerCID:", err)
+				l.Error("GetStatsByContainerProbeID:", err)
 				return nil, err
 			}
 			stats = append(stats, tmpStat)
 		}
 		err = rows.Err()
 		if err != nil {
-			l.Error("GetStatsByContainerCID:", err)
+			l.Error("GetStatsByContainerProbeID:", err)
 			return nil, err
 		}
 	}
