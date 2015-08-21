@@ -457,3 +457,88 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 
 	return stats, nil
 }
+
+/*
+	Get stats by probe id
+*/
+func GetStatsByContainerProbeID(probeID string, o Options) ([]Stat, error) {
+	var stats []Stat       // List of stats to return
+	var err error          // Erro handling
+	var containerIDs []int // Array of container ID
+	var tmpStat Stat       // Temporary stat
+	var rows *sql.Rows     // Temporary sql rows
+	var sqlQuery string    // SQL query
+	var oS, oB string      // SQL options
+
+	sqlQuery = "SELECT * FROM stats WHERE containerid=?" // Base sql query
+
+	// Add options
+	if o.Since != -1 || o.Before != -1 {
+		if o.Since != -1 && o.Before != -1 {
+			oS = fmt.Sprintf("%d", o.Since)
+			oB = fmt.Sprintf("%d", o.Before)
+		} else if o.Since == -1 || o.Before != -1 {
+			oS = fmt.Sprintf("%d", 0)
+			oB = fmt.Sprintf("%d", o.Before)
+		} else if o.Since != -1 || o.Before == -1 {
+			oS = fmt.Sprintf("%d", o.Since)
+			oB = fmt.Sprintf("%d", 2000000000)
+		}
+		sqlQuery += fmt.Sprintf(" AND time BETWEEN %s AND %s", oS, oB)
+	}
+	if o.Limit != -1 {
+		sqlQuery += fmt.Sprintf(" LIMIT %d", o.Limit)
+	}
+
+	// Get containers' id
+	rows, err = DB.Query("SELECT id FROM containers WHERE probeid=?", probeID)
+	if err != nil {
+		l.Error("GetStatsByContainerProbeID:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Get results
+	for rows.Next() {
+		var id int
+		err = rows.Scan(&id)
+		if err != nil {
+			l.Error("GetStatsByContainerProbeID:", err)
+			return nil, err
+		}
+		containerIDs = append(containerIDs, id)
+	}
+	err = rows.Err()
+	if err != nil {
+		l.Error("GetStatsByContainerProbeID:", err)
+		return nil, err
+	}
+
+	// Get containers' stats
+	for _, id := range containerIDs {
+		// Exec query
+		rows, err = DB.Query(sqlQuery, id)
+		if err != nil {
+			l.Error("GetStatsByContainerCID:", err)
+			return nil, err
+		}
+		defer rows.Close()
+
+		// Get results
+		for rows.Next() {
+			err = rows.Scan(&tmpStat.ContainerID, &tmpStat.Time, &tmpStat.SizeRootFs, &tmpStat.SizeRw, &tmpStat.SizeMemory, &tmpStat.Running)
+			if err != nil {
+				l.Error("GetStatsByContainerCID:", err)
+				return nil, err
+			}
+			stats = append(stats, tmpStat)
+		}
+		err = rows.Err()
+		if err != nil {
+			l.Error("GetStatsByContainerCID:", err)
+			return nil, err
+		}
+	}
+
+	return stats, nil
+}
