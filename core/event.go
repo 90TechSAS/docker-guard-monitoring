@@ -8,6 +8,13 @@ var ()
 
 type Event dguard.Event
 
+type Transport struct {
+	Name string `yaml:"name"`
+	Path string `yaml:"path"`
+	Ip   string `yaml:"ip"`
+	Port string `yaml:"port"`
+}
+
 func EventController() {
 	// TODO
 }

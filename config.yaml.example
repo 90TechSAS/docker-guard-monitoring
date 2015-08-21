@@ -9,6 +9,18 @@ docker-guard:
     user: "dgs"
     pass: "dgs"
     db: "dgs"
+  alert:
+    transports:
+      -
+        name: "t1"
+        path: "./transports/slack"
+        ip: "127.0.0.1"
+        port: "32401"
+      -
+        name: "t2"
+        path: "./transports/log"
+        ip: "127.0.0.1"
+        port: "32402"
 probes:
   -
     name: "probe1"
