@@ -38,6 +38,23 @@ type Stat struct {
 }
 
 /*
+	Stat populated
+*/
+type StatPopulated struct {
+	CID        string
+	ProbeID    int
+	Hostname   string
+	Image      string
+	IPAddress  string
+	MacAddress string
+	Time       int64
+	SizeRootFs uint64
+	SizeRw     uint64
+	SizeMemory uint64
+	Running    bool
+}
+
+/*
 
  */
 type Options struct {
@@ -541,4 +558,101 @@ func GetStatsByContainerProbeID(probeID string, o Options) ([]Stat, error) {
 	}
 
 	return stats, nil
+}
+
+/*
+	Get stats populated by probe id
+*/
+func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, error) {
+	var statsP []StatPopulated // List of stats populated to return
+	var err error              // Erro handling
+	var containerIDs []int     // Array of container ID
+	var tmpContainer Container // Temporary container
+	var tmpStatP StatPopulated // Temporary stat populated
+	var rows *sql.Rows         // Temporary sql rows
+	var sqlQuery string        // SQL query
+	var oS, oB string          // SQL options
+
+	sqlQuery = "SELECT time,sizerootfs,sizerw,sizememory,running FROM stats WHERE containerid=?" // Base sql query
+
+	// Add options
+	if o.Since != -1 || o.Before != -1 {
+		if o.Since != -1 && o.Before != -1 {
+			oS = fmt.Sprintf("%d", o.Since)
+			oB = fmt.Sprintf("%d", o.Before)
+		} else if o.Since == -1 || o.Before != -1 {
+			oS = fmt.Sprintf("%d", 0)
+			oB = fmt.Sprintf("%d", o.Before)
+		} else if o.Since != -1 || o.Before == -1 {
+			oS = fmt.Sprintf("%d", o.Since)
+			oB = fmt.Sprintf("%d", 2000000000)
+		}
+		sqlQuery += fmt.Sprintf(" AND time BETWEEN %s AND %s", oS, oB)
+	}
+	if o.Limit != -1 {
+		sqlQuery += fmt.Sprintf(" LIMIT %d", o.Limit)
+	}
+
+	// Get containers' id
+	rows, err = DB.Query("SELECT * FROM containers WHERE probeid=?", probeID)
+	if err != nil {
+		l.Error("GetStatsByContainerProbeID:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Get results
+	for rows.Next() {
+		err = rows.Scan(
+			&tmpContainer.ID,
+			&tmpContainer.CID,
+			&tmpContainer.ProbeID,
+			&tmpContainer.Hostname,
+			&tmpContainer.Image,
+			&tmpContainer.IPAddress,
+			&tmpContainer.MacAddress)
+		if err != nil {
+			l.Error("GetStatsByContainerProbeID:", err)
+			return nil, err
+		}
+		containerIDs = append(containerIDs, tmpContainer.ID)
+	}
+	err = rows.Err()
+	if err != nil {
+		l.Error("GetStatsByContainerProbeID:", err)
+		return nil, err
+	}
+
+	// Get containers' stats populated
+	for _, id := range containerIDs {
+		// Exec query
+		rows, err = DB.Query(sqlQuery, id)
+		if err != nil {
+			l.Error("GetStatsByContainerProbeID:", err)
+			return nil, err
+		}
+		defer rows.Close()
+
+		// Get results
+		for rows.Next() {
+			err = rows.Scan(
+				&tmpStatP.Time,
+				&tmpStatP.SizeRootFs,
+				&tmpStatP.SizeRw,
+				&tmpStatP.SizeMemory,
+				&tmpStatP.Running)
+			if err != nil {
+				l.Error("GetStatsByContainerProbeID:", err)
+				return nil, err
+			}
+			statsP = append(statsP, tmpStatP)
+		}
+		err = rows.Err()
+		if err != nil {
+			l.Error("GetStatsByContainerProbeID:", err)
+			return nil, err
+		}
+	}
+
+	return statsP, nil
 }
