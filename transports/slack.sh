@@ -113,7 +113,7 @@ TEXT="\"attachments\": [{
                 }
             ],
             \"color\": \"$COLOR\",
-            \"thumb_url\": \"$ICON\"
+            \"thumb_url\": \"$THUMB\"
         }
     ]"
 

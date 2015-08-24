@@ -48,13 +48,14 @@ func Init() {
 	Loop for monitoring a probe
 */
 func MonitorProbe(p Probe) {
-	var resp *http.Response                     // Http response
-	var req *http.Request                       // Http response
-	var body []byte                             // Http body
-	var err error                               // Error handling
-	var containers map[string]*dguard.Container // Returned container list
-	var dbContainers []Container                // Containers in DB
-	var probeID int                             // Probe ID
+	var resp *http.Response                        // Http response
+	var req *http.Request                          // Http response
+	var body []byte                                // Http body
+	var err error                                  // Error handling
+	var containers map[string]*dguard.Container    // Returned container list
+	var oldContainers map[string]*dguard.Container // Old returned container list (used to compare running state)
+	var dbContainers []Container                   // Containers in DB
+	var probeID int                                // Probe ID
 
 	// Get probe ID in DB, create it if does not exists
 	probeID, err = GetProbeID(p.Name)
@@ -64,6 +65,7 @@ func MonitorProbe(p Probe) {
 
 	// Reloading loop
 	for {
+		oldContainers = containers
 		containers = nil
 		l.Verbose("Reloading", p.Name)
 
@@ -105,7 +107,7 @@ func MonitorProbe(p Probe) {
 		// Remove in DB old removed containers
 		dbContainers, err = GetContainersBy("probeid", probeID)
 		if err != nil {
-			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list in DB")
+			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list in DB:", err)
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
@@ -114,6 +116,28 @@ func MonitorProbe(p Probe) {
 			for _, c := range containers {
 				if dbC.CID == c.ID {
 					containerStillExist = true
+					// Check if container started or stopped
+					c1, ok1 := containers[dbC.CID]
+					c2, ok2 := oldContainers[dbC.CID]
+					if ok1 && ok2 && (c1.Running != c2.Running) {
+						var event dguard.Event
+						var eventSeverity int
+						var eventType int
+						if c1.Running {
+							eventSeverity = dguard.EventNotice
+							eventType = dguard.EventContainerStarted
+						} else {
+							eventSeverity = dguard.EventCritical
+							eventType = dguard.EventContainerStopped
+						}
+						event = dguard.Event{
+							eventSeverity,
+							eventType,
+							dbC.Hostname + " (" + dbC.CID + ")",
+							p.Name,
+							""}
+						Alert(event)
+					}
 				}
 			}
 			if !containerStillExist {
