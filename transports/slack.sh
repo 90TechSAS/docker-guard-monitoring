@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration
-HOOK_URL="https://hooks.slack.com/services/YOURKEY"
-CHANNEL="#mychannel"
+HOOK_URL="https://hooks.slack.com/services/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"
+CHANNEL="#sysadmin"
 USERNAME="DGS"
 ICON=":squirrel:"
 

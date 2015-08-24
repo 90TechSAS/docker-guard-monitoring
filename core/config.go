@@ -22,9 +22,9 @@ type Config struct {
 			Pass string `yaml:"pass"`
 			DB   string `yaml:"db"`
 		} `yaml:"sql-server"`
-		Alert struct {
+		Event struct {
 			Transports []Transport `yaml:"transports"`
-		} `yaml:"alert"`
+		} `yaml:"event"`
 	} `yaml:"docker-guard"`
 	Probes []Probe `yaml:"probes"`
 }

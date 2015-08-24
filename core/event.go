@@ -23,17 +23,18 @@ func Alert(event dguard.Event) {
 	var err error  // Error handling
 	var out []byte // Command output
 
-	// Exec transport
-	out, err = exec.Command("./transports/TRANSPORT.sh",
-		utils.I2S(event.Severity),
-		event.TypeToString(),
-		event.Target,
-		event.Probe,
-		event.Data).Output()
-	if err != nil {
-		l.Error("Out:", string(out))
-		return
+	// Exec transports
+	for _, t := range DGConfig.DockerGuard.Event.Transports {
+		out, err = exec.Command(t.Path,
+			utils.I2S(event.Severity),
+			event.TypeToString(),
+			event.Target,
+			event.Probe,
+			event.Data).Output()
+		if err != nil {
+			l.Error("Error transport ("+t.Name+") Out:", string(out))
+			return
+		}
+		l.Debug("Transport ("+t.Name+") Out:", string(out))
 	}
-
-	l.Info("Out:", string(out))
 }
