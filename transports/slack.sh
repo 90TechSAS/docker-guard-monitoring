@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# Configuration
-HOOK_URL="https://hooks.slack.com/services/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"
-CHANNEL="#mychannel"
-USERNAME="DGS"
-ICON=":squirrel:"
+# Get configuration
+source "./transports/slack-config.sh"
 
 # Check arguments
 if [ $# -lt 5 ] || [ $# -gt 5 ] ; then

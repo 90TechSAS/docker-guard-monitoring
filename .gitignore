@@ -10,3 +10,7 @@ config.yaml*
 
 # Ignore TODO
 TODO
+
+# Ignore transports config files
+transports/*
+!transports/*example*
