@@ -3,3 +3,13 @@ export HOOK_URL="https://hooks.slack.com/services/T02RQM68Q/B0428K81A/uV6FkTkBVZ
 export CHANNEL="#mychannel"
 export USERNAME="DGS"
 export ICON=":squirrel:"
+
+export THUMBDiskSpaceLimitReached=""
+export THUMBMemorySpaceLimitReached=""
+export THUMBContainerStarted=""
+export THUMBContainerStopped=""
+export THUMBContainerCreated=""
+export THUMBContainerRemoved=""
+export THUMBDiskIOOverload=""
+export THUMBNetBandwithOverload=""
+export THUMBCPUUsageOverload=""
