@@ -2,7 +2,7 @@
 
 # Configuration
 HOOK_URL="https://hooks.slack.com/services/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"
-CHANNEL="#sysadmin"
+CHANNEL="#mychannel"
 USERNAME="DGS"
 ICON=":squirrel:"
 
@@ -68,13 +68,11 @@ TEXT="\"attachments\": [{
             \"fields\": [
                 {
                     \"title\": \"Target(s)\",
-                    \"value\": \"$3\",
-                    \"short\": true
+                    \"value\": \"$3\"
                 },
                 {
                     \"title\": \"Probe\",
-                    \"value\": \"$4\",
-                    \"short\": true
+                    \"value\": \"$4\"
                 },
                 {
                     \"title\": \"Additional data\",

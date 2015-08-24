@@ -117,7 +117,16 @@ func MonitorProbe(p Probe) {
 				}
 			}
 			if !containerStillExist {
+				var event dguard.Event = dguard.Event{
+					dguard.EventNotice,
+					dguard.EventContainerRemoved,
+					dbC.Hostname + " (" + dbC.CID + ")",
+					p.Name,
+					""}
+
 				dbC.Delete()
+
+				Alert(event)
 			}
 		}
 
@@ -130,8 +139,19 @@ func MonitorProbe(p Probe) {
 			tmpContainer, err = GetContainerByCID(c.ID)
 			if err != nil {
 				if err.Error() == "sql: no rows in result set" {
+					var event dguard.Event
+
 					sqlContainer := Container{0, c.ID, probeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
+
+					event = dguard.Event{
+						dguard.EventNotice,
+						dguard.EventContainerCreated,
+						sqlContainer.Hostname + " (" + sqlContainer.CID + ")",
+						p.Name,
+						"Image: " + sqlContainer.Image}
 					id, err = sqlContainer.Insert()
+
+					Alert(event)
 					if err != nil {
 						l.Error("MonitorProbe ("+p.Name+"): container insert:", err)
 						continue
