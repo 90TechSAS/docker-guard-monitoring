@@ -2,6 +2,7 @@ package core
 
 import (
 	"os/exec"
+	"regexp"
 
 	"../utils"
 
@@ -20,8 +21,25 @@ func EventController() {
 }
 
 func Alert(event dguard.Event) {
-	var err error  // Error handling
-	var out []byte // Command output
+	var err error          // Error handling
+	var out []byte         // Command output
+	var alert bool = false // true if the alert needs to be sent
+
+	for _, rgxp := range DGConfig.DockerGuard.Event.Watch {
+		r, err := regexp.MatchString(rgxp, event.Target)
+		if err != nil {
+			l.Error("Error processing regexp:", err)
+			return
+		}
+		if r {
+			alert = true
+			break
+		}
+	}
+
+	if !alert {
+		return
+	}
 
 	// Exec transports
 	for _, t := range DGConfig.DockerGuard.Event.Transports {

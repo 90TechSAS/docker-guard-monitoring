@@ -23,6 +23,7 @@ type Config struct {
 			DB   string `yaml:"db"`
 		} `yaml:"sql-server"`
 		Event struct {
+			Watch      []string    `yaml:"watch"`
 			Transports []Transport `yaml:"transports"`
 		} `yaml:"event"`
 	} `yaml:"docker-guard"`
