@@ -102,6 +102,7 @@ func MonitorProbe(p Probe) {
 		err = json.Unmarshal([]byte(body), &containers)
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Parsing container list:", err)
+			continue
 		}
 
 		// Remove in DB old removed containers
