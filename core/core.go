@@ -189,7 +189,15 @@ func MonitorProbe(p Probe) {
 			}
 
 			// Add stats in DB
-			sqlStat := Stat{int(id), int64(c.Time), uint64(c.SizeRootFs), uint64(c.SizeRw), uint64(c.MemoryUsed), c.Running}
+			sqlStat := Stat{int(id),
+				int64(c.Time),
+				uint64(c.SizeRootFs),
+				uint64(c.SizeRw),
+				uint64(c.MemoryUsed),
+				uint64(c.NetBandwithRX),
+				uint64(c.NetBandwithTX),
+				uint64(c.CPUUsage),
+				c.Running}
 			err = sqlStat.Insert()
 			if err != nil {
 				l.Error("MonitorProbe ("+p.Name+"): stat insert:", err)

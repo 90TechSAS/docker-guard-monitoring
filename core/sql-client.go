@@ -29,29 +29,35 @@ type Container struct {
 	Container's stats
 */
 type Stat struct {
-	ContainerID int
-	Time        int64
-	SizeRootFs  uint64
-	SizeRw      uint64
-	SizeMemory  uint64
-	Running     bool
+	ContainerID   int
+	Time          int64
+	SizeRootFs    uint64
+	SizeRw        uint64
+	SizeMemory    uint64
+	NetBandwithRX uint64
+	NetBandwithTX uint64
+	CPUUsage      uint64
+	Running       bool
 }
 
 /*
 	Stat populated
 */
 type StatPopulated struct {
-	CID        string
-	ProbeID    int
-	Hostname   string
-	Image      string
-	IPAddress  string
-	MacAddress string
-	Time       int64
-	SizeRootFs uint64
-	SizeRw     uint64
-	SizeMemory uint64
-	Running    bool
+	CID           string
+	ProbeID       int
+	Hostname      string
+	Image         string
+	IPAddress     string
+	MacAddress    string
+	Time          int64
+	SizeRootFs    uint64
+	SizeRw        uint64
+	SizeMemory    uint64
+	NetBandwithRX uint64
+	NetBandwithTX uint64
+	CPUUsage      uint64
+	Running       bool
 }
 
 /*
@@ -124,7 +130,7 @@ func InitSQL() {
 	if err != nil {
 		l.Critical("Can't create DeleteContainerStmt:", err)
 	}
-	InsertStatStmt, err = DB.Prepare("INSERT INTO stats VALUES (?,?,?,?,?,?)")
+	InsertStatStmt, err = DB.Prepare("INSERT INTO stats VALUES (?,?,?,?,?,?,?,?,?)")
 	if err != nil {
 		l.Critical("Can't create InsertStatStmt:", err)
 	}
@@ -252,7 +258,15 @@ func (c *Container) GetLastStat() (Stat, error) {
 	var stat Stat // Returned stat
 	var err error // Error handling
 
-	err = GetLastStatStmt.QueryRow(c.ID).Scan(&stat.ContainerID, &stat.Time, &stat.SizeRootFs, &stat.SizeRw, &stat.SizeMemory, &stat.Running)
+	err = GetLastStatStmt.QueryRow(c.ID).Scan(&stat.ContainerID,
+		&stat.Time,
+		&stat.SizeRootFs,
+		&stat.SizeRw,
+		&stat.SizeMemory,
+		&stat.NetBandwithRX,
+		&stat.NetBandwithTX,
+		&stat.CPUUsage,
+		&stat.Running)
 	if err != nil {
 		if err.Error() != "sql: no rows in result set" {
 			l.Error("GetLastStat:", err)
@@ -289,6 +303,9 @@ func (c *Container) GetBetweenStats(begin, end int) ([]Stat, error) {
 			&tmpStat.SizeRootFs,
 			&tmpStat.SizeRw,
 			&tmpStat.SizeMemory,
+			&tmpStat.NetBandwithRX,
+			&tmpStat.NetBandwithTX,
+			&tmpStat.CPUUsage,
 			&tmpStat.Running); err != nil {
 			l.Error("GetBetweenStats: Can't scan row:", err)
 			return stats, err
@@ -362,7 +379,13 @@ func GetContainerByID(id int) (Container, error) {
 	var container Container // Container to return
 	var err error           // Error handling
 
-	err = GetContainerByCIDStmt.QueryRow(id).Scan(&container.ID, &container.CID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
+	err = GetContainerByCIDStmt.QueryRow(id).Scan(&container.ID,
+		&container.CID,
+		&container.ProbeID,
+		&container.Hostname,
+		&container.Image,
+		&container.IPAddress,
+		&container.MacAddress)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return container, err
@@ -382,7 +405,13 @@ func GetContainerByCID(cid string) (Container, error) {
 	var container Container // Container to return
 	var err error           // Error handling
 
-	err = GetContainerByCIDStmt.QueryRow(cid).Scan(&container.ID, &container.CID, &container.ProbeID, &container.Hostname, &container.Image, &container.IPAddress, &container.MacAddress)
+	err = GetContainerByCIDStmt.QueryRow(cid).Scan(&container.ID,
+		&container.CID,
+		&container.ProbeID,
+		&container.Hostname,
+		&container.Image,
+		&container.IPAddress,
+		&container.MacAddress)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return container, err
@@ -402,7 +431,15 @@ func (s *Stat) Insert() error {
 	var err error // Error handling
 	var timeInsert int64 = time.Now().Unix()
 
-	_, err = InsertStatStmt.Exec(s.ContainerID, timeInsert, s.SizeRootFs, s.SizeRw, s.SizeMemory, s.Running)
+	_, err = InsertStatStmt.Exec(s.ContainerID,
+		timeInsert,
+		s.SizeRootFs,
+		s.SizeRw,
+		s.SizeMemory,
+		s.NetBandwithRX,
+		s.NetBandwithTX,
+		s.CPUUsage,
+		s.Running)
 
 	return err
 }
@@ -459,7 +496,15 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 
 	// Get results
 	for rows.Next() {
-		err = rows.Scan(&tmpStat.ContainerID, &tmpStat.Time, &tmpStat.SizeRootFs, &tmpStat.SizeRw, &tmpStat.SizeMemory, &tmpStat.Running)
+		err = rows.Scan(&tmpStat.ContainerID,
+			&tmpStat.Time,
+			&tmpStat.SizeRootFs,
+			&tmpStat.SizeRw,
+			&tmpStat.SizeMemory,
+			&tmpStat.NetBandwithRX,
+			&tmpStat.NetBandwithTX,
+			&tmpStat.CPUUsage,
+			&tmpStat.Running)
 		if err != nil {
 			l.Error("GetStatsByContainerCID:", err)
 			return nil, err
@@ -543,7 +588,15 @@ func GetStatsByContainerProbeID(probeID string, o Options) ([]Stat, error) {
 
 		// Get results
 		for rows.Next() {
-			err = rows.Scan(&tmpStat.ContainerID, &tmpStat.Time, &tmpStat.SizeRootFs, &tmpStat.SizeRw, &tmpStat.SizeMemory, &tmpStat.Running)
+			err = rows.Scan(&tmpStat.ContainerID,
+				&tmpStat.Time,
+				&tmpStat.SizeRootFs,
+				&tmpStat.SizeRw,
+				&tmpStat.SizeMemory,
+				&tmpStat.NetBandwithRX,
+				&tmpStat.NetBandwithTX,
+				&tmpStat.CPUUsage,
+				&tmpStat.Running)
 			if err != nil {
 				l.Error("GetStatsByContainerProbeID:", err)
 				return nil, err
@@ -640,6 +693,9 @@ func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, er
 				&tmpStatP.SizeRootFs,
 				&tmpStatP.SizeRw,
 				&tmpStatP.SizeMemory,
+				&tmpStatP.NetBandwithRX,
+				&tmpStatP.NetBandwithTX,
+				&tmpStatP.CPUUsage,
 				&tmpStatP.Running)
 			if err != nil {
 				l.Error("GetStatsByContainerProbeID:", err)
