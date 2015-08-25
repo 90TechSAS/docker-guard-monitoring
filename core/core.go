@@ -87,6 +87,11 @@ func MonitorProbe(p Probe) {
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
+		if resp.StatusCode != 200 {
+			l.Error("MonitorProbe ("+p.Name+"): Probe returned a non 200 HTTP status code:", resp.StatusCode)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
 
 		// Get request body
 		body, err = ioutil.ReadAll(resp.Body)
@@ -102,6 +107,7 @@ func MonitorProbe(p Probe) {
 		err = json.Unmarshal([]byte(body), &containers)
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Parsing container list:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
 
