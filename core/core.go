@@ -165,6 +165,7 @@ func MonitorProbe(p Probe) {
 		for _, c := range containers {
 			var id int64
 			var tmpContainer Container
+			var sqlStat Stat
 
 			// Add containers in DB
 			tmpContainer, err = GetContainerByCID(c.ID)
@@ -195,8 +196,7 @@ func MonitorProbe(p Probe) {
 				id = int64(tmpContainer.ID)
 			}
 
-			// Add stats in DB
-			sqlStat := Stat{int(id),
+			sqlStat = Stat{int(id),
 				int64(c.Time),
 				uint64(c.SizeRootFs),
 				uint64(c.SizeRw),
@@ -205,6 +205,7 @@ func MonitorProbe(p Probe) {
 				uint64(c.NetBandwithTX),
 				uint64(c.CPUUsage),
 				c.Running}
+
 			err = sqlStat.Insert()
 			if err != nil {
 				l.Error("MonitorProbe ("+p.Name+"): stat insert:", err)

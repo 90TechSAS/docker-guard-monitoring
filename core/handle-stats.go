@@ -9,6 +9,22 @@ import (
 )
 
 /*
+	Stat populated
+*/
+type StatPopulated struct {
+	Container     Container
+	ContainerID   int
+	Time          int64
+	SizeRootFs    uint64
+	SizeRw        uint64
+	SizeMemory    uint64
+	NetBandwithRX uint64
+	NetBandwithTX uint64
+	CPUUsage      uint64
+	Running       bool
+}
+
+/*
 	Return containers stats
 */
 func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {

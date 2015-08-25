@@ -41,26 +41,6 @@ type Stat struct {
 }
 
 /*
-	Stat populated
-*/
-type StatPopulated struct {
-	CID           string
-	ProbeID       int
-	Hostname      string
-	Image         string
-	IPAddress     string
-	MacAddress    string
-	Time          int64
-	SizeRootFs    uint64
-	SizeRw        uint64
-	SizeMemory    uint64
-	NetBandwithRX uint64
-	NetBandwithTX uint64
-	CPUUsage      uint64
-	Running       bool
-}
-
-/*
 	HTTP GET options
 */
 type Options struct {
@@ -620,13 +600,13 @@ func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, er
 	var statsP []StatPopulated    // List of stats populated to return
 	var err error                 // Erro handling
 	var tmpContainer Container    // Temporary container
-	var tmpContainers []Container // Temporary container
+	var tmpContainers []Container // Temporary containers
 	var tmpStatP StatPopulated    // Temporary stat populated
 	var rows *sql.Rows            // Temporary sql rows
 	var sqlQuery string           // SQL query
 	var oS, oB string             // SQL options
 
-	sqlQuery = "SELECT time,sizerootfs,sizerw,sizememory,running FROM stats WHERE containerid=?" // Base sql query
+	sqlQuery = "SELECT time,sizerootfs,sizerw,sizememory,netbandwithrx,netbandwithtx,cpuusage,running FROM stats WHERE containerid=? ORDER BY time DESC " // Base sql query
 
 	// Add options
 	if o.Since != -1 || o.Before != -1 {
@@ -701,12 +681,7 @@ func GetStatsPByContainerProbeID(probeID string, o Options) ([]StatPopulated, er
 				l.Error("GetStatsByContainerProbeID:", err)
 				return nil, err
 			}
-			tmpStatP.CID = container.CID
-			tmpStatP.ProbeID = container.ProbeID
-			tmpStatP.Hostname = container.Hostname
-			tmpStatP.Image = container.Image
-			tmpStatP.IPAddress = container.IPAddress
-			tmpStatP.MacAddress = container.MacAddress
+			tmpStatP.Container = container
 
 			statsP = append(statsP, tmpStatP)
 		}
