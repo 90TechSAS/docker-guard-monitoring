@@ -11,19 +11,23 @@ import (
 
 var ()
 
+/*
+	Transport struct
+
+	path is the path to the transport program
+*/
 type Transport struct {
 	Name string `yaml:"name"`
 	Path string `yaml:"path"`
 }
 
-func EventController() {
-	// TODO
-}
-
+/*
+	Send an event alert with corresponding transport(s)
+*/
 func Alert(event dguard.Event) {
-	var err error          // Error handling
-	var out []byte         // Command output
-	var alert bool = false // true if the alert needs to be sent
+	var err error     // Error handling
+	var out []byte    // Command output
+	var alert = false // true if the alert needs to be sent
 
 	for _, rgxp := range DGConfig.DockerGuard.Event.Watch {
 		r, err := regexp.MatchString(rgxp, event.Target)

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // Include mysql driver
 
 	"../utils"
 )
@@ -70,6 +70,9 @@ var (
 	GetStatsByContainerCIDStmt *sql.Stmt
 )
 
+/*
+	Init SQL client
+*/
 func InitSQL() {
 	var err error // Error handling
 
@@ -212,9 +215,8 @@ func (c *Container) Insert() (int64, error) {
 		id, err := result.LastInsertId()
 		if err != nil {
 			return 0, err
-		} else {
-			return id, nil
 		}
+		return id, nil
 	}
 
 	return 0, err
@@ -310,7 +312,7 @@ func GetContainersBy(field string, value interface{}) ([]Container, error) {
 	var err error              // Error handling
 
 	// Protection against SQL injection
-	var fieldExists bool = false
+	var fieldExists = false
 	for _, i := range []string{"id", "containerid", "probeid", "hostname", "image", "ip", "mac"} {
 		if field == i {
 			fieldExists = true
@@ -369,10 +371,9 @@ func GetContainerByID(id int) (Container, error) {
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return container, err
-		} else {
-			l.Error("GetContainerByID:", err)
-			return container, err
 		}
+		l.Error("GetContainerByID:", err)
+		return container, err
 	}
 
 	return container, nil
@@ -395,10 +396,9 @@ func GetContainerByCID(cid string) (Container, error) {
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return container, err
-		} else {
-			l.Error("GetContainerByCID:", err)
-			return container, err
 		}
+		l.Error("GetContainerByCID:", err)
+		return container, err
 	}
 
 	return container, nil
@@ -409,7 +409,7 @@ func GetContainerByCID(cid string) (Container, error) {
 */
 func (s *Stat) Insert() error {
 	var err error // Error handling
-	var timeInsert int64 = time.Now().Unix()
+	var timeInsert = time.Now().Unix()
 
 	_, err = InsertStatStmt.Exec(s.ContainerID,
 		timeInsert,

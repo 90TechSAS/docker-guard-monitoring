@@ -22,7 +22,7 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	return
 
 	// returnedContainers => json
-	tmpJson, err := json.Marshal(returnedContainers)
+	tmpJSON, err := json.Marshal(returnedContainers)
 	if err != nil {
 		l.Error("HTTPHandlerContainers: Failed to marshal struct")
 		http.Error(w, http.StatusText(500), 500)
@@ -30,7 +30,7 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 
 	fmt.Fprint(w, returnStr)
 }
@@ -64,7 +64,7 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 
 	// returnedContainer => json
 	returnedContainer = containers[0]
-	tmpJson, err := json.Marshal(returnedContainer)
+	tmpJSON, err := json.Marshal(returnedContainer)
 	if err != nil {
 		l.Error("HTTPHandlerContainerID: Failed to marshal struct")
 		http.Error(w, http.StatusText(500), 500)
@@ -72,7 +72,7 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 
 	fmt.Fprint(w, returnStr)
 }
@@ -101,7 +101,7 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// returnedContainers => json
-	tmpJson, err := json.Marshal(returnedContainers)
+	tmpJSON, err := json.Marshal(returnedContainers)
 	if err != nil {
 		l.Error("HTTPHandlerContainersProbeID: Failed to marshal struct")
 		http.Error(w, http.StatusText(500), 500)
@@ -109,7 +109,7 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 
 	fmt.Fprint(w, returnStr)
 }

@@ -12,7 +12,7 @@ import (
 
 var (
 	// HTTP client used to get probe infos
-	HTTPClient *http.Client = &http.Client{}
+	HTTPClient = &http.Client{}
 )
 
 /*
@@ -36,9 +36,6 @@ func Init() {
 	for _, probe := range DGConfig.Probes {
 		go MonitorProbe(probe)
 	}
-
-	// Launch event controller
-	EventController()
 
 	// Launch API
 	HTTPServer()
@@ -138,22 +135,22 @@ func MonitorProbe(p Probe) {
 							eventType = dguard.EventContainerStopped
 						}
 						event = dguard.Event{
-							eventSeverity,
-							eventType,
-							dbC.Hostname + " (" + dbC.CID + ")",
-							p.Name,
-							""}
+							Severity: eventSeverity,
+							Type:     eventType,
+							Target:   dbC.Hostname + " (" + dbC.CID + ")",
+							Probe:    p.Name,
+							Data:     ""}
 						Alert(event)
 					}
 				}
 			}
 			if !containerStillExist {
-				var event dguard.Event = dguard.Event{
-					dguard.EventNotice,
-					dguard.EventContainerRemoved,
-					dbC.Hostname + " (" + dbC.CID + ")",
-					p.Name,
-					""}
+				var event = dguard.Event{
+					Severity: dguard.EventNotice,
+					Type:     dguard.EventContainerRemoved,
+					Target:   dbC.Hostname + " (" + dbC.CID + ")",
+					Probe:    p.Name,
+					Data:     ""}
 
 				dbC.Delete()
 
@@ -176,11 +173,11 @@ func MonitorProbe(p Probe) {
 					sqlContainer := Container{0, c.ID, probeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
 
 					event = dguard.Event{
-						dguard.EventNotice,
-						dguard.EventContainerCreated,
-						sqlContainer.Hostname + " (" + sqlContainer.CID + ")",
-						p.Name,
-						"Image: " + sqlContainer.Image}
+						Severity: dguard.EventNotice,
+						Type:     dguard.EventContainerCreated,
+						Target:   sqlContainer.Hostname + " (" + sqlContainer.CID + ")",
+						Probe:    p.Name,
+						Data:     "Image: " + sqlContainer.Image}
 					id, err = sqlContainer.Insert()
 
 					Alert(event)

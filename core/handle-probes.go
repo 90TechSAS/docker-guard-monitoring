@@ -31,7 +31,7 @@ func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// probes => json
-	tmpJson, err := json.Marshal(returnProbes)
+	tmpJSON, err := json.Marshal(returnProbes)
 	if err != nil {
 		l.Error("HTTPHandlerProbes: Failed to marshal struct")
 		http.Error(w, http.StatusText(500), 500)
@@ -39,7 +39,7 @@ func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 	fmt.Fprint(w, returnStr)
 }
 
@@ -75,7 +75,7 @@ func HTTPHandlerProbesID(w http.ResponseWriter, r *http.Request) {
 
 	// Get simplified probe
 	// probe => json
-	tmpJson, err := json.Marshal(returnProbe)
+	tmpJSON, err := json.Marshal(returnProbe)
 	if err != nil {
 		l.Error("HTTPHandlerProbesID: Failed to marshal struct")
 		http.Error(w, http.StatusText(500), 500)
@@ -83,6 +83,6 @@ func HTTPHandlerProbesID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 	fmt.Fprint(w, returnStr)
 }

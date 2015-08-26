@@ -36,7 +36,7 @@ func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {
 	return
 
 	// returnedStats => json
-	tmpJson, err := json.Marshal(returnedStats)
+	tmpJSON, err := json.Marshal(returnedStats)
 	if err != nil {
 		l.Error("HTTPHandlerStats: Failed to marshal struct")
 		http.Error(w, http.StatusText(500), 500)
@@ -44,7 +44,7 @@ func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 
 	fmt.Fprint(w, returnStr)
 }
@@ -55,7 +55,7 @@ func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {
 func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 	var returnStr string      // HTTP Response body
 	var muxVars = mux.Vars(r) // Mux Vars
-	var tmpJson []byte        // Temporary JSON
+	var tmpJSON []byte        // Temporary JSON
 	var options Options       // Options
 	var err error             // Error handling
 
@@ -76,7 +76,7 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// returnedStats => json
-		tmpJson, err = json.Marshal(returnedStats)
+		tmpJSON, err = json.Marshal(returnedStats)
 		if err != nil {
 			l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
 			http.Error(w, http.StatusText(500), 500)
@@ -92,7 +92,7 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// returnedStats => json
-		tmpJson, err = json.Marshal(returnedStats)
+		tmpJSON, err = json.Marshal(returnedStats)
 		if err != nil {
 			l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
 			http.Error(w, http.StatusText(500), 500)
@@ -104,7 +104,7 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 
 	fmt.Fprint(w, returnStr)
 }
@@ -132,7 +132,7 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// returnedStats => json
-	tmpJson, err := json.Marshal(returnedStats)
+	tmpJSON, err := json.Marshal(returnedStats)
 	if err != nil {
 		l.Error("HTTPHandlerStatsCID: Failed to marshal struct:", err)
 		http.Error(w, http.StatusText(500), 500)
@@ -140,7 +140,7 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add json to the returned string
-	returnStr = string(tmpJson)
+	returnStr = string(tmpJSON)
 
 	fmt.Fprint(w, returnStr)
 }
