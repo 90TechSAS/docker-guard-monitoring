@@ -190,6 +190,58 @@ func (s *Stat) Insert() error {
 }
 
 /*
+	Insert some stats
+*/
+func InsertStats(stats []Stat) error {
+	if len(stats) < 1 {
+		return errors.New("len(stats) < 1")
+	}
+
+	var pts = make([]influxdb.Point, len(stats)) // InfluxDB point
+	var err error                                // Error handling
+
+	l.Silly("Insert stats:", stats)
+	// Make InfluxDB points
+	for i := 0; i < len(stats); i++ {
+		pts[i] = influxdb.Point{
+			Measurement: StatsMeasurements,
+			Tags: map[string]string{
+				"containerid": stats[i].ContainerID,
+			},
+			Fields: map[string]interface{}{
+				"sizerootfs":    stats[i].SizeRootFs,
+				"sizerw":        stats[i].SizeRw,
+				"sizememory":    stats[i].SizeMemory,
+				"netbandwithrx": stats[i].NetBandwithRX,
+				"netbandwithtx": stats[i].NetBandwithTX,
+				"cpuusage":      stats[i].CPUUsage,
+				"running":       stats[i].Running,
+			},
+			Time:      time.Now(),
+			Precision: "s",
+		}
+	}
+
+	// InfluxDB batch points
+	bps := influxdb.BatchPoints{
+		Points:          pts,
+		Database:        DGConfig.DockerGuard.InfluxDB.DB,
+		RetentionPolicy: "default",
+	}
+
+	// Write points in InfluxDB server
+	timer := time.Now()
+	_, err = DB.Write(bps)
+	if err != nil {
+		l.Error("Failed to write in InfluxDB:", bps, ". Error:", err)
+	} else {
+		l.Silly("Stat inserted in ", time.Since(timer), ":", bps)
+	}
+
+	return err
+}
+
+/*
 	Get container's last stat
 */
 func (c *Container) GetLastStat() (Stat, error) {

@@ -62,6 +62,8 @@ func MonitorProbe(p Probe) {
 
 	// Reloading loop
 	for {
+		var statsToInsert []Stat // Stats to insert
+
 		oldContainers = containers
 		containers = nil
 		l.Verbose("Reloading", p.Name)
@@ -211,11 +213,12 @@ func MonitorProbe(p Probe) {
 				uint64(c.CPUUsage),
 				c.Running}
 
-			err = newStat.Insert()
-			if err != nil {
-				l.Error("MonitorProbe ("+p.Name+"): stat insert:", err)
-				continue
-			}
+			statsToInsert = append(statsToInsert, newStat)
+		}
+		err = InsertStats(statsToInsert)
+		if err != nil {
+			l.Error("MonitorProbe ("+p.Name+"): insert stats:", err)
+			continue
 		}
 
 		time.Sleep(time.Second * time.Duration(p.ReloadTime))
