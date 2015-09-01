@@ -40,6 +40,9 @@ func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
+
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }
 
@@ -84,5 +87,8 @@ func HTTPHandlerProbesID(w http.ResponseWriter, r *http.Request) {
 
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
+
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }

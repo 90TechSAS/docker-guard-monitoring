@@ -13,15 +13,14 @@ type Config struct {
 		API struct {
 			ListenInterface string `yaml:"listen-interface"`
 			ListenPort      string `yaml:"listen-port"`
+			APILogin        string `yaml:"api-login"`
 			APIPassword     string `yaml:"api-password"`
 		}
-		SQLServer struct {
+		InfluxDB struct {
 			IP   string `yaml:"ip"`
 			Port int    `yaml:"port"`
-			User string `yaml:"user"`
-			Pass string `yaml:"pass"`
 			DB   string `yaml:"db"`
-		} `yaml:"sql-server"`
+		} `yaml:"influxdb"`
 		Event struct {
 			Watch      []string    `yaml:"watch"`
 			Transports []Transport `yaml:"transports"`

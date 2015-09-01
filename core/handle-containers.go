@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
-	"../utils"
 )
 
 /*
@@ -32,6 +30,8 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
 
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }
 
@@ -52,18 +52,17 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get container
-	containers, err := GetContainersBy("containerid", ContainerIDVar)
-	if err != nil || len(containers) > 1 {
+	returnedContainer, err = GetContainerByCID(ContainerIDVar)
+	if err != nil {
+		if err.Error() == "Not Found" {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
 		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-	if err != nil || len(containers) == 0 {
-		http.Error(w, http.StatusText(404), 404)
 		return
 	}
 
 	// returnedContainer => json
-	returnedContainer = containers[0]
 	tmpJSON, err := json.Marshal(returnedContainer)
 	if err != nil {
 		l.Error("HTTPHandlerContainerID: Failed to marshal struct")
@@ -74,6 +73,8 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
 
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }
 
@@ -87,15 +88,15 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	var err error                      // Error handling
 
 	// Get probe ID
-	probeIDVar, err := utils.S2I(muxVars["id"])
-	if err != nil {
-		http.Error(w, http.StatusText(400), 400)
-		return
-	}
+	probeIDVar := muxVars["id"]
 
 	// Get containers by probe ID
-	returnedContainers, err = GetContainersBy("probeid", probeIDVar)
+	returnedContainers, err = GetContainersByProbe(probeIDVar)
 	if err != nil {
+		if err.Error() == "Not Found" {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
@@ -111,5 +112,7 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
 
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -13,8 +14,7 @@ import (
 */
 type StatPopulated struct {
 	Container     Container
-	ContainerID   int
-	Time          int64
+	Time          time.Time
 	SizeRootFs    uint64
 	SizeRw        uint64
 	SizeMemory    uint64
@@ -46,6 +46,8 @@ func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
 
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }
 
@@ -106,6 +108,8 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
 
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }
 
@@ -142,5 +146,7 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
 
+	w.Header().Set("Content-Type", "application/json")
+	AddCORS(w)
 	fmt.Fprint(w, returnStr)
 }

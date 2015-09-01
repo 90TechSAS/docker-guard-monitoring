@@ -14,3 +14,6 @@ TODO
 # Ignore transports config files
 transports/*
 !transports/*example*
+
+# Ignore list of containers
+containers.json

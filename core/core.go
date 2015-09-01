@@ -29,8 +29,11 @@ type Probe struct {
 	Initialize Core
 */
 func Init() {
-	// Init SQL client
-	InitSQL()
+	// Init Containers Controller
+	InitContainersController()
+
+	// Init InfluxDB client
+	InitDB()
 
 	// Launch probe monitors
 	for _, probe := range DGConfig.Probes {
@@ -52,13 +55,6 @@ func MonitorProbe(p Probe) {
 	var containers map[string]*dguard.Container    // Returned container list
 	var oldContainers map[string]*dguard.Container // Old returned container list (used to compare running state)
 	var dbContainers []Container                   // Containers in DB
-	var probeID int                                // Probe ID
-
-	// Get probe ID in DB, create it if does not exists
-	probeID, err = GetProbeID(p.Name)
-	if err != nil {
-		l.Critical("MonitorProbe ("+p.Name+"): Can't get probe ID", err)
-	}
 
 	// Reloading loop
 	for {
@@ -109,11 +105,17 @@ func MonitorProbe(p Probe) {
 		}
 
 		// Remove in DB old removed containers
-		dbContainers, err = GetContainersBy("probeid", probeID)
+		dbContainers, err = GetContainersByProbe(p.Name)
 		if err != nil {
-			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list in DB:", err)
-			time.Sleep(time.Second * time.Duration(p.ReloadTime))
-			continue
+			if err.Error() != "Not found" {
+				l.Error("MonitorProbe ("+p.Name+"): containers not found:", err)
+				time.Sleep(time.Second * time.Duration(p.ReloadTime))
+				continue
+			} else {
+				l.Error("MonitorProbe ("+p.Name+"): Can't get list of containers in DB:", err)
+				time.Sleep(time.Second * time.Duration(p.ReloadTime))
+				continue
+			}
 		}
 		for _, dbC := range dbContainers {
 			var containerStillExist = false
@@ -160,41 +162,42 @@ func MonitorProbe(p Probe) {
 
 		// Add containers and stats in DB
 		for _, c := range containers {
-			var id int64
+			var id string
 			var tmpContainer Container
-			var sqlStat Stat
+			var newStat Stat
 
 			// Add containers in DB
 			tmpContainer, err = GetContainerByCID(c.ID)
 			if err != nil {
-				if err.Error() == "sql: no rows in result set" {
+				if err.Error() == "Not found" {
 					var event dguard.Event
 
-					sqlContainer := Container{0, c.ID, probeID, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
+					newContainer := Container{c.ID, p.Name, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
 
 					event = dguard.Event{
 						Severity: dguard.EventNotice,
 						Type:     dguard.EventContainerCreated,
-						Target:   sqlContainer.Hostname + " (" + sqlContainer.CID + ")",
+						Target:   newContainer.Hostname + " (" + newContainer.CID + ")",
 						Probe:    p.Name,
-						Data:     "Image: " + sqlContainer.Image}
-					id, err = sqlContainer.Insert()
+						Data:     "Image: " + newContainer.Image}
+					err = newContainer.Insert()
 
 					Alert(event)
 					if err != nil {
 						l.Error("MonitorProbe ("+p.Name+"): container insert:", err)
 						continue
 					}
+					id = newContainer.CID
 				} else {
 					l.Error("MonitorProbe ("+p.Name+"): GetContainerById:", err)
 					continue
 				}
 			} else {
-				id = int64(tmpContainer.ID)
+				id = tmpContainer.CID
 			}
 
-			sqlStat = Stat{int(id),
-				int64(c.Time),
+			newStat = Stat{id,
+				time.Unix(int64(c.Time), 0),
 				uint64(c.SizeRootFs),
 				uint64(c.SizeRw),
 				uint64(c.MemoryUsed),
@@ -203,7 +206,7 @@ func MonitorProbe(p Probe) {
 				uint64(c.CPUUsage),
 				c.Running}
 
-			err = sqlStat.Insert()
+			err = newStat.Insert()
 			if err != nil {
 				l.Error("MonitorProbe ("+p.Name+"): stat insert:", err)
 				continue
