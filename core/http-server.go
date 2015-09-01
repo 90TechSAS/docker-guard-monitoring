@@ -64,8 +64,13 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If header "Authorization" is not null, return 403, else 404
+	// If header "Authorization" is not null and invalid, return 403
 	if r.Header.Get("Authorization") != "" {
+		u, p, ok := r.BasicAuth()
+		if ok == true && u == DGConfig.DockerGuard.API.APILogin && p == DGConfig.DockerGuard.API.APIPassword {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
 		http.Error(w, http.StatusText(403), 403)
 	} else {
 		http.Error(w, http.StatusText(404), 404)
