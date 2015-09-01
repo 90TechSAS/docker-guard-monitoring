@@ -24,7 +24,7 @@ type Probe struct {
 	URI         string  `yaml:"uri"`
 	APIPassword string  `yaml:"api-password"`
 	ReloadTime  float64 `yaml:"reload-time"`
-	Infos       dguard.ProbeInfos
+	Infos       *dguard.ProbeInfos
 }
 
 /*
@@ -38,8 +38,14 @@ func Init() {
 	InitDB()
 
 	// Launch probe monitors
-	Probes = make([]*Probe, len(DGConfig.Probes))
-	for _, probe := range DGConfig.Probes {
+	for _, p := range DGConfig.Probes {
+		var probe = Probe{
+			Name:        p.Name,
+			URI:         p.URI,
+			APIPassword: p.APIPassword,
+			ReloadTime:  p.ReloadTime,
+			Infos:       new(dguard.ProbeInfos),
+		}
 		Probes = append(Probes, &probe)
 		go MonitorProbe(probe)
 	}
@@ -68,8 +74,60 @@ func MonitorProbe(p Probe) {
 		containers = nil
 		l.Verbose("Reloading", p.Name)
 
+		/*
+			GET PROBE INFOS
+		*/
 		// Make HTTP GET request
-		reqURI := p.URI + "/list"
+		reqURI := p.URI + "/probeinfos"
+		l.Debug("MonitorProbe: GET", reqURI)
+		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
+		if err != nil {
+			l.Error("MonitorProbe ("+p.Name+"): Can't create", p.Name, "HTTP request:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+		req.Header.Set("Auth", p.APIPassword)
+
+		// Do request
+		l.Debug("MonitorProbe: Get probe infos")
+		resp, err = HTTPClient.Do(req)
+		if err != nil {
+			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "probe infos:", err)
+			p.Infos.Running = false
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+		if resp.StatusCode != 200 {
+			l.Error("MonitorProbe ("+p.Name+"): Probe returned a non 200 HTTP status code:", resp.StatusCode)
+			p.Infos.Running = false
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+
+		// Get request body
+		body, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "probe infos body:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+
+		l.Silly("MonitorProbe ("+p.Name+"):", "GET", reqURI, "body:\n", string(body))
+
+		// Parse body
+		err = json.Unmarshal([]byte(body), &(p.Infos))
+		if err != nil {
+			l.Error("MonitorProbe ("+p.Name+"): Parsing probe infos:", err)
+			time.Sleep(time.Second * time.Duration(p.ReloadTime))
+			continue
+		}
+		p.Infos.Running = true
+
+		/*
+			GET LIST OF CONTAINERS
+		*/
+		// Make HTTP GET request
+		reqURI = p.URI + "/list"
 		l.Debug("MonitorProbe: GET", reqURI)
 		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
 		if err != nil {
@@ -84,17 +142,14 @@ func MonitorProbe(p Probe) {
 		resp, err = HTTPClient.Do(req)
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list:", err)
-			p.Infos.Running = false
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
 		if resp.StatusCode != 200 {
 			l.Error("MonitorProbe ("+p.Name+"): Probe returned a non 200 HTTP status code:", resp.StatusCode)
-			p.Infos.Running = false
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
-		p.Infos.Running = true
 
 		// Get request body
 		body, err = ioutil.ReadAll(resp.Body)

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sync"
 
+	dguard "github.com/90TechSAS/libgo-docker-guard"
+
 	"../utils"
 )
 
@@ -203,18 +205,17 @@ func GetContainerByCID(cid string) (Container, error) {
 }
 
 /*
-	Get list of probes
+	Get list of probes infos
 */
-func GetProbes() []string {
-	var probes []string // List of probes to return
+func GetProbesInfos() []dguard.ProbeInfos {
+	var probes []dguard.ProbeInfos // List of probes infos to return
 
-	// Lock / Unlock containerList
-	ContainerListMutex.Lock()
-	defer ContainerListMutex.Unlock()
-
-	// Get probes
-	for probeName, _ := range containerList {
-		probes = append(probes, probeName)
+	for _, probe := range Probes {
+		if probe == nil {
+			l.Error("GetProbesInfos: probe can't be nil")
+			continue
+		}
+		probes = append(probes, *((*probe).Infos))
 	}
 
 	return probes

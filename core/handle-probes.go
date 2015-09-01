@@ -4,18 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	dguard "github.com/90TechSAS/libgo-docker-guard"
 )
 
 /*
 	Return simplified probes array
 */
 func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
-	var returnStr string      // HTTP Response body
-	var returnProbes []string // Returned probes
-	var err error             // Error handling
+	var returnStr string                 // HTTP Response body
+	var returnProbes []dguard.ProbeInfos // Returned probes
+	var err error                        // Error handling
 
 	// Get probes
-	returnProbes = GetProbes()
+	returnProbes = GetProbesInfos()
 
 	// probes => json
 	tmpJSON, err := json.Marshal(returnProbes)
