@@ -13,6 +13,7 @@ import (
 var (
 	// HTTP client used to get probe infos
 	HTTPClient = &http.Client{}
+	Probes     []*Probe
 )
 
 /*
@@ -23,6 +24,7 @@ type Probe struct {
 	URI         string  `yaml:"uri"`
 	APIPassword string  `yaml:"api-password"`
 	ReloadTime  float64 `yaml:"reload-time"`
+	Infos       dguard.ProbeInfos
 }
 
 /*
@@ -36,7 +38,9 @@ func Init() {
 	InitDB()
 
 	// Launch probe monitors
+	Probes = make([]*Probe, len(DGConfig.Probes))
 	for _, probe := range DGConfig.Probes {
+		Probes = append(Probes, &probe)
 		go MonitorProbe(probe)
 	}
 
@@ -77,14 +81,17 @@ func MonitorProbe(p Probe) {
 		resp, err = HTTPClient.Do(req)
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list:", err)
+			p.Infos.Running = false
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
 		if resp.StatusCode != 200 {
 			l.Error("MonitorProbe ("+p.Name+"): Probe returned a non 200 HTTP status code:", resp.StatusCode)
+			p.Infos.Running = false
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
+		p.Infos.Running = true
 
 		// Get request body
 		body, err = ioutil.ReadAll(resp.Body)
