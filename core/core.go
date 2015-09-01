@@ -68,7 +68,7 @@ func MonitorProbe(p Probe) {
 
 		// Make HTTP GET request
 		reqURI := p.URI + "/list"
-		l.Debug("GET", reqURI)
+		l.Debug("MonitorProbe: GET", reqURI)
 		req, err = http.NewRequest("GET", reqURI, bytes.NewBufferString(""))
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Can't create", p.Name, "HTTP request:", err)
@@ -78,6 +78,7 @@ func MonitorProbe(p Probe) {
 		req.Header.Set("Auth", p.APIPassword)
 
 		// Do request
+		l.Debug("MonitorProbe: Get list of containers")
 		resp, err = HTTPClient.Do(req)
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Can't get", p.Name, "container list:", err)
@@ -112,14 +113,11 @@ func MonitorProbe(p Probe) {
 		}
 
 		// Remove in DB old removed containers
+		l.Debug("MonitorProbe: GetContainersByProbe(", p.Name, ")")
 		dbContainers, err = GetContainersByProbe(p.Name)
 		if err != nil {
 			if err.Error() != "Not found" {
 				l.Error("MonitorProbe ("+p.Name+"): containers not found:", err)
-				time.Sleep(time.Second * time.Duration(p.ReloadTime))
-				continue
-			} else {
-				l.Error("MonitorProbe ("+p.Name+"): Can't get list of containers in DB:", err)
 				time.Sleep(time.Second * time.Duration(p.ReloadTime))
 				continue
 			}

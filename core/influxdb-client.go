@@ -150,6 +150,7 @@ func (s *Stat) Insert() error {
 	var pts = make([]influxdb.Point, 1) // InfluxDB point
 	var err error                       // Error handling
 
+	l.Silly("Insert stat:", s)
 	// Make InfluxDB point
 	pts[0] = influxdb.Point{
 		Measurement: StatsMeasurements,
@@ -177,9 +178,12 @@ func (s *Stat) Insert() error {
 	}
 
 	// Write point in InfluxDB server
+	timer := time.Now()
 	_, err = DB.Write(bps)
 	if err != nil {
 		l.Error("Failed to write in InfluxDB:", bps, ". Error:", err)
+	} else {
+		l.Silly("Stat inserted in ", time.Since(timer), ":", bps)
 	}
 
 	return err
