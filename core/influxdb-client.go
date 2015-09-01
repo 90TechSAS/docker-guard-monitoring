@@ -47,8 +47,7 @@ const (
 */
 var (
 	// DB
-	DB       *influxdb.Client
-	ProbesID map[string]int
+	DB *influxdb.Client
 )
 
 /*

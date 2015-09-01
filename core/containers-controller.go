@@ -201,3 +201,21 @@ func GetContainerByCID(cid string) (Container, error) {
 	// If this code is reached, the container doesn't exist => not found
 	return container, errors.New("Not found")
 }
+
+/*
+	Get list of probes
+*/
+func GetProbes() []string {
+	var probes []string // List of probes to return
+
+	// Lock / Unlock containerList
+	ContainerListMutex.Lock()
+	defer ContainerListMutex.Unlock()
+
+	// Get probes
+	for probeName, _ := range containerList {
+		probes = append(probes, probeName)
+	}
+
+	return probes
+}
