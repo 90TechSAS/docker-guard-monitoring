@@ -29,6 +29,9 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
+	if returnStr == "null" {
+		returnStr = "[]"
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	AddCORS(w)
@@ -72,6 +75,9 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
+	if returnStr == "null" {
+		returnStr = "{}"
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	AddCORS(w)
@@ -111,6 +117,9 @@ func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
 
 	// Add json to the returned string
 	returnStr = string(tmpJSON)
+	if returnStr == "null" {
+		returnStr = "[]"
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	AddCORS(w)
