@@ -346,6 +346,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 			}
 		}
 
+		stat.Time, _ = time.Parse(time.RFC3339, row[0].(string))
 		stat.ContainerID = containerCID
 		stat.CPUUsage = uint64(statValues[1])
 		stat.NetBandwithRX = uint64(statValues[2])
