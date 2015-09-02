@@ -65,6 +65,7 @@ func MonitorProbe(p Probe) {
 	var containers map[string]*dguard.Container    // Returned container list
 	var oldContainers map[string]*dguard.Container // Old returned container list (used to compare running state)
 	var dbContainers []Container                   // Containers in DB
+	var tmpProbeInfos dguard.ProbeInfos            // Temporary probe infos
 
 	// Reloading loop
 	for {
@@ -115,13 +116,15 @@ func MonitorProbe(p Probe) {
 		l.Silly("MonitorProbe ("+p.Name+"):", "GET", reqURI, "body:\n", string(body))
 
 		// Parse body
-		err = json.Unmarshal([]byte(body), &(p.Infos))
+		err = json.Unmarshal([]byte(body), &(tmpProbeInfos))
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): Parsing probe infos:", err)
 			time.Sleep(time.Second * time.Duration(p.ReloadTime))
 			continue
 		}
-		p.Infos.Running = true
+		tmpProbeInfos.Running = true
+		tmpProbeInfos.Name = p.Name
+		*(p.Infos) = tmpProbeInfos // Swap probe infos
 
 		/*
 			GET LIST OF CONTAINERS
