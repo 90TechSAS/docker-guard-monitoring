@@ -29,7 +29,7 @@ func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 		for i, probe := range returnProbes {
 			returnProbes[i].Containers, err = GetSimpleContainersByProbe(probe.Name)
 			if err != nil {
-				l.Error("HTTPHandlerProbesName: Failed to marshal struct")
+				l.Error("HTTPHandlerProbes: Failed to get list of containers")
 				http.Error(w, http.StatusText(500), 500)
 				return
 			}
