@@ -15,10 +15,26 @@ import (
 func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 	var returnStr string                 // HTTP Response body
 	var returnProbes []dguard.ProbeInfos // Returned probes
+	var populate string                  // HTTP GET parameter
 	var err error                        // Error handling
+
+	// Check if populate is true
+	populate = r.URL.Query().Get("populate")
 
 	// Get probes
 	returnProbes = GetProbesInfos()
+
+	// If populate == true, insert containers
+	if populate == "true" {
+		for i, probe := range returnProbes {
+			returnProbes[i].Containers, err = GetSimpleContainersByProbe(probe.Name)
+			if err != nil {
+				l.Error("HTTPHandlerProbesName: Failed to marshal struct")
+				http.Error(w, http.StatusText(500), 500)
+				return
+			}
+		}
+	}
 
 	// probes => json
 	tmpJSON, err := json.Marshal(returnProbes)
