@@ -87,17 +87,17 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 /*
 	Return probe's containers infos
 */
-func HTTPHandlerContainersProbeID(w http.ResponseWriter, r *http.Request) {
+func HTTPHandlerContainersProbeName(w http.ResponseWriter, r *http.Request) {
 	var returnStr string               // HTTP Response body
 	var returnedContainers []Container // Returned container list
 	var muxVars = mux.Vars(r)          // Mux Vars
 	var err error                      // Error handling
 
 	// Get probe ID
-	probeIDVar := muxVars["id"]
+	probeNameVar := muxVars["name"]
 
 	// Get containers by probe ID
-	returnedContainers, err = GetContainersByProbe(probeIDVar)
+	returnedContainers, err = GetContainersByProbe(probeNameVar)
 	if err != nil {
 		if err.Error() == "Not Found" {
 			http.Error(w, http.StatusText(404), 404)

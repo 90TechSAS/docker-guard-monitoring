@@ -55,9 +55,9 @@ func HTTPHandlerStats(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-	Return containers stats by probe ID
+	Return containers stats by probe name
 */
-func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
+func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 	var returnStr string      // HTTP Response body
 	var muxVars = mux.Vars(r) // Mux Vars
 	var tmpJSON []byte        // Temporary JSON
@@ -67,13 +67,13 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 	options = GetOptions(r)
 
 	// Get mux Vars
-	probeIDVar := muxVars["id"]
+	probeNameVar := muxVars["name"]
 
 	// Check if populate is wanted
 	populate := r.URL.Query().Get("populate")
 	if populate == "true" {
 		var returnedStats []StatPopulated // Returned stats
-		returnedStats, err = GetStatsPByContainerProbeID(probeIDVar, options)
+		returnedStats, err = GetStatsPByContainerProbeID(probeNameVar, options)
 		if err != nil {
 			l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
 			http.Error(w, http.StatusText(500), 500)
@@ -89,7 +89,7 @@ func HTTPHandlerStatsProbeID(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if populate == "false" || populate == "" {
 		var returnedStats []Stat // Returned stats
-		returnedStats, err = GetStatsByContainerProbeID(probeIDVar, options)
+		returnedStats, err = GetStatsByContainerProbeID(probeNameVar, options)
 		if err != nil {
 			l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
 			http.Error(w, http.StatusText(500), 500)

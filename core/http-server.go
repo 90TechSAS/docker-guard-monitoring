@@ -90,11 +90,11 @@ func HTTPServer() {
 
 	rGET.HandleFunc("/containers", HTTPHandlerContainers)
 	rGET.HandleFunc("/containers/{cid:[0-9a-z]+}", HTTPHandlerContainerCID)
-	rGET.HandleFunc("/containers/probe/{id:[0-9]+}", HTTPHandlerContainersProbeID)
+	rGET.HandleFunc("/containers/probe/{name:[0-9a-zA-Z-_]+}", HTTPHandlerContainersProbeName)
 	rGET.HandleFunc("/probes", HTTPHandlerProbes)
 	rGET.HandleFunc("/probes/{name:[0-9a-zA-Z-_]+}", HTTPHandlerProbesName)
 	rGET.HandleFunc("/stats", HTTPHandlerStats)
-	rGET.HandleFunc("/stats/probe/{id:[0-9]+}", HTTPHandlerStatsProbeID)
+	rGET.HandleFunc("/stats/probe/{name:[0-9a-zA-Z-_]+}", HTTPHandlerStatsProbeName)
 	rGET.HandleFunc("/stats/container/{cid:[0-9a-z]+}", HTTPHandlerStatsCID)
 	http.Handle("/", r)
 
