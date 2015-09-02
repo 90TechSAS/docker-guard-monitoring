@@ -301,13 +301,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	var oS, oB string // Query options
 	var err error     // Error handling
 
-	query := `	SELECT 	last(cpuusage),
-						last(netbandwithrx),
-						last(netbandwithtx),
-						last(running),
-						last(sizememory),
-						last(sizerootfs),
-						last(sizerw)
+	query := `	SELECT *
 				FROM cstats
 				WHERE containerid = '` + containerCID + `'`
 
