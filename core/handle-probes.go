@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	dguard "github.com/90TechSAS/libgo-docker-guard"
+	"github.com/gorilla/mux"
 )
 
 /*
@@ -41,7 +42,60 @@ func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 /*
 	Return one probe
 */
-func HTTPHandlerProbesID(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, http.StatusText(501), 501) // Not implemented
+func HTTPHandlerProbesName(w http.ResponseWriter, r *http.Request) {
+	var returnStr string           // HTTP Response body
+	var muxVars = mux.Vars(r)      // Mux Vars
+	var probes []dguard.ProbeInfos // Probes
+	var err error                  // Error handling
+
+	// Get probe name
+	probeNameVar, ok := muxVars["name"]
+	if !ok {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	// Get probes
+	probes = GetProbesInfos()
+
+	// Search probe
+	for _, p := range probes {
+		if p.Name == probeNameVar {
+			var sContainers []dguard.SimpleContainer
+
+			// Get list of containers
+			sContainers, err = GetSimpleContainersByProbe(p.Name)
+			if err != nil {
+				l.Error("HTTPHandlerProbesName: Failed to get list of containers")
+				http.Error(w, http.StatusText(500), 500)
+				return
+			}
+
+			// Add containers to probe infos
+			p.Containers = sContainers
+
+			// probes => json
+			tmpJSON, err := json.Marshal(p)
+			if err != nil {
+				l.Error("HTTPHandlerProbesName: Failed to marshal struct")
+				http.Error(w, http.StatusText(500), 500)
+				return
+			}
+
+			// Add json to the returned string
+			returnStr = string(tmpJSON)
+			w.Header().Set("Content-Type", "application/json")
+			AddCORS(w)
+			fmt.Fprint(w, returnStr)
+			return
+		}
+
+	}
+
+	http.Error(w, http.StatusText(404), 404)
 	return
+
+	if returnStr == "null" {
+		returnStr = "[]"
+	}
 }

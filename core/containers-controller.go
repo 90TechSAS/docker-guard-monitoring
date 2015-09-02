@@ -182,6 +182,33 @@ func GetContainersByProbe(probeName string) ([]Container, error) {
 }
 
 /*
+	Get []dguard.SimpleContainer by probe name in containerList
+*/
+func GetSimpleContainersByProbe(probeName string) ([]dguard.SimpleContainer, error) {
+	var tmpContainers []Container
+	var simpleContainers []dguard.SimpleContainer
+	var err error // Error handling
+
+	tmpContainers, err = GetContainersByProbe(probeName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range tmpContainers {
+		var simpleContainer = dguard.SimpleContainer{
+			ID:         c.CID,
+			Hostname:   c.Hostname,
+			Image:      c.Image,
+			IPAddress:  c.IPAddress,
+			MacAddress: c.MacAddress,
+		}
+		simpleContainers = append(simpleContainers, simpleContainer)
+	}
+
+	return simpleContainers, nil
+}
+
+/*
 	Get a container by cid in containerList
 */
 func GetContainerByCID(cid string) (Container, error) {
