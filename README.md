@@ -28,11 +28,16 @@ But the best feature is: you can make your own transport!
 
 To do this, you must create an executable in your transport directory (see: **How to configure?**).
 This executable must have 5 parameters:
+
 1. severity: The severity level (see the table bellow).
 2. type: The alert type (see the table bellow).
 3. target: The targeted system(s), it's generaly the concerned container's ID.
 4. target_probe: The probe where the container is.
 5. data: Additional data, it's detailed informations about the alert.
+
+The transport will be runned like this example:
+
+```./transport/mytransport.sh 1 CPUUsageOverload probe1 probe1 '8.45,6.12,2.89'```
 
 **Severity levels:**
 
@@ -54,6 +59,22 @@ This executable must have 5 parameters:
 | ContainerRemoved 		  | A container is removed 									  |
 | NetBandwithOverload 	  | The net bandwith of a container overloaded                |
 | CPUUsageOverload 		  | The cpu usage of a container or probe overloaded          |
+
+**Example:**
+
+This script is a transport example, it will log the alert in a file:
+
+```bash
+#!/bin/bash
+
+LOG_FILE="test.log"
+
+echo "Severity:     $1" >> $LOG_FILE
+echo "Type:         $2" >> $LOG_FILE
+echo "Target:       $3" >> $LOG_FILE
+echo "Target_probe: $4" >> $LOG_FILE
+echo "Data:         $5" >> $LOG_FILE
+```
 
 ## API
 
