@@ -1,4 +1,4 @@
-# Docker Guard Monitoring (DGS)
+# Docker Guard Monitoring 
 
 ## What?
 
@@ -10,7 +10,7 @@ Because it's fast as hell! DGS is a lightweight software and it can watch hundre
 
 ## How it works?
 
-TODO: add architecture scheme
+![Architecture scheme](http://i.imgur.com/74qYu4z.png?1)
 
 ## API
 
