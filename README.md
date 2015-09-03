@@ -168,6 +168,14 @@ ___
 
 Get containers stats of a probe.
 * $name : Name of the probe
+ 
+GET parameters:
+
+| Parameter     | Description                      | Example              | Default     |
+|-------------- |----------------------------------|----------------------|-------------|
+| since         | Date of the first stat (RFC3339) | 2015-09-02T09:27:41Z | now() - 24h |
+| before        | Date of the last stat (RFC3339)  | 2015-09-02T09:27:41Z | now()       |
+| limit         | Number of max stats returned     | 100                  | 20          |
 
 **Example:**
 ```bash
@@ -221,6 +229,14 @@ ___
 
 Get one container's stats.
 * $id : Container ID
+ 
+GET parameters:
+
+| Parameter     | Description                      | Example              | Default     |
+|-------------- |----------------------------------|----------------------|-------------|
+| since         | Date of the first stat (RFC3339) | 2015-09-02T09:27:41Z | now() - 24h |
+| before        | Date of the last stat (RFC3339)  | 2015-09-02T09:27:41Z | now()       |
+| limit         | Number of max stats returned     | 100                  | 20          |
 
 **Example:**
 ```bash
