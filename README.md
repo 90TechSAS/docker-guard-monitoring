@@ -12,6 +12,23 @@ Because it's fast as hell! DGS is a lightweight software and it can watch hundre
 
 ![Architecture scheme](http://i.imgur.com/74qYu4z.png?1)
 
+## How to install?
+
+TODO
+
 ## API
 
 TODO
+
+## How to contribute?
+
+Feel free to fork the project a make a pull request!
+
+## Thanks to
+
+* [InfluxBD](https://github.com/influxdb/influxdb)
+* [LoGo](https://github.com/Nurza/LoGo)
+
+## License
+
+MIT
