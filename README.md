@@ -346,13 +346,14 @@ ___
 
 ## How to contribute?
 
-
 Feel free to fork the project a make a pull request!
 
 ## Thanks to
 
 * [InfluxDB](https://github.com/influxdb/influxdb)
 * [LoGo](https://github.com/Nurza/LoGo)
+* [Gorilla Mux](github.com/gorilla/mux)
+* [Go-yaml](https://github.com/go-yaml/yaml)
 
 ## License
 
