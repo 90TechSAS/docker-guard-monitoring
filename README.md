@@ -352,7 +352,7 @@ Feel free to fork the project a make a pull request!
 
 * [InfluxDB](https://github.com/influxdb/influxdb)
 * [LoGo](https://github.com/Nurza/LoGo)
-* [Gorilla Mux](github.com/gorilla/mux)
+* [Gorilla Mux](https://github.com/gorilla/mux)
 * [Go-yaml](https://github.com/go-yaml/yaml)
 
 ## License
