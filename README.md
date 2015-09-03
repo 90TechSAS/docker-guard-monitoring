@@ -8,7 +8,7 @@ Docker Guard is a powerful monitoring tool to watch your containers (running or 
 
 Because it's fast as hell! Docker Guard is a lightweight software and it can watch hundreds of containers (maybe thousands?).
 
-## How it works?
+## How it works?
 
 ![Architecture scheme](http://i.imgur.com/74qYu4z.png?1)
 
@@ -35,9 +35,9 @@ This executable must have 5 parameters:
 4. target_probe: The probe where the container is.
 5. data: Additional data, it's detailed informations about the alert.
 
-The transport will be runned like this example:
+The transport will be executed like this example:
 
-```./transport/mytransport.sh 1 CPUUsageOverload probe1 probe1 '8.45,6.12,2.89'```
+```./transports/mytransport.sh 1 CPUUsageOverload 169be77817 probe1 '8.45,6.12,2.89'```
 
 **Severity levels:**
 
