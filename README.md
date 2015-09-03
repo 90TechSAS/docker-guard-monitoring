@@ -6,7 +6,7 @@ Docker Guard is a powerful monitoring tool to watch your containers (running or 
 
 ## Why ?
 
-Because it's fast as hell! DGS is a lightweight software and it can watch hundreds of containers (maybe thousands?).
+Because it's fast as hell! Docker Guard is a lightweight software and it can watch hundreds of containers (maybe thousands?).
 
 ## How it works?
 
@@ -18,9 +18,32 @@ TODO
 
 ## API
 
-TODO
+#### GET /containers/{id}
+
+___
+
+#### GET /containers/probe/{name}
+
+___
+
+#### GET /probes
+
+___
+
+#### GET /probes/{name}
+
+___
+
+#### GET /stats/probe/{name}
+
+___
+
+#### GET /stats/container/{id}
+
+___
 
 ## How to contribute?
+
 
 Feel free to fork the project a make a pull request!
 
