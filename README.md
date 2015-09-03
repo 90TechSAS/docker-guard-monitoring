@@ -16,6 +16,45 @@ Because it's fast as hell! Docker Guard is a lightweight software and it can wat
 
 TODO
 
+## How to configure?
+
+TODO
+
+## How to make my own transport?
+
+First, what is a transport? A transport is an executable (script or binary) used for send an alert (like "OMG, this container is on fire!") on your favorite medium of communication (email, Slack, sms, webhook, ...).
+
+But the best feature is: you can make your own transport!
+
+To do this, you must create an executable in your transport directory (see: **How to configure?**).
+This executable must have 5 parameters:
+1. severity: The severity level (see the table bellow).
+2. type: The alert type (see the table bellow).
+3. target: The targeted system(s), it's generaly the concerned container's ID.
+4. target_probe: The probe where the container is.
+5. data: Additional data, it's detailed informations about the alert.
+
+**Severity levels:**
+
+| Severity level | Description |
+|--------------  |-------------|
+| 0 			 | Notice 	   |
+| 1 			 | Warning 	   |
+| 2 			 | Critical	   |
+
+**Alert types**
+
+| Alert type              | Description                                               |
+|-------------------------|-----------------------------------------------------------|
+| DiskSpaceLimitReached   | The disk space limit of a container or probe is reached   |
+| MemorySpaceLimitReached | The memory space limit of a container or probe is reached |
+| ContainerStarted 		  | A container is started 									  |
+| ContainerStopped 		  | A container is stopped 									  |
+| ContainerCreated 		  | A container is created 									  |
+| ContainerRemoved 		  | A container is removed 									  |
+| NetBandwithOverload 	  | The net bandwith of a container overloaded                |
+| CPUUsageOverload 		  | The cpu usage of a container or probe overloaded          |
+
 ## API
 
 #### GET /containers/{id}
