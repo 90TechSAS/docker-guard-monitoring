@@ -4,7 +4,7 @@
 
 Docker Guard is a powerful monitoring tool to watch your containers (running or not, memory/disk/netio usage, ...)
 
-## Why ?
+## Why?
 
 Because it's fast as hell! Docker Guard is a lightweight software and it can watch hundreds of containers (maybe thousands?).
 
@@ -14,7 +14,35 @@ Because it's fast as hell! Docker Guard is a lightweight software and it can wat
 
 ## How to install?
 
-TODO
+First, you need to install InfluxDB 0.9 or newer.
+It's simple with Docker:
+
+Make the InfluxDB data directory to make data persistent:
+```bash
+mkdir -p /var/lib/influxdb/data
+```
+
+And run the InfluxDB container from ![tutumcloud/influxdb](https://github.com/tutumcloud/influxdb):
+```bash
+docker run -d -v "/var/lib/influxdb/data:/data" -p 8083:8083 -p 8086:8086 --expose 8090 --expose 8099 tutum/influxdb
+```
+
+Now, you can install Docker Guard Monitoring with docker:
+
+Clone the project:
+```bash
+git clone https://github.com/90TechSAS/docker-guard-monitoring.git
+cd docker-guard-monitoring/docker
+```
+
+Edit the file config.yaml at your own sweet will. Type these commands to build a container with DG monitoring inside and run it!
+
+```bash
+./build.sh
+./run.sh
+```
+
+TODO: this part is not finished yet.
 
 ## How to configure?
 
@@ -346,7 +374,7 @@ ___
 
 ## How to contribute?
 
-Feel free to fork the project a make a pull request!
+Feel free to fork the project and make a pull request!
 
 ## Thanks to
 
