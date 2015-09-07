@@ -54,7 +54,7 @@ func Alert(event dguard.Event) {
 			event.Probe,
 			event.Data).Output()
 		if err != nil {
-			l.Error("Error transport ("+t.Name+") Out:", string(out))
+			l.Error("Error transport ("+t.Name+") Err: ", err, "/ Out:", string(out))
 			return
 		}
 		l.Debug("Transport ("+t.Name+") Out:", string(out))
