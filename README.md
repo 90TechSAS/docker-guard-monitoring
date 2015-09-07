@@ -22,7 +22,7 @@ Make the InfluxDB data directory to make data persistent:
 mkdir -p /var/lib/influxdb/data
 ```
 
-And run the InfluxDB container from ![tutumcloud/influxdb](https://github.com/tutumcloud/influxdb):
+And run the InfluxDB container from [tutumcloud/influxdb](https://github.com/tutumcloud/influxdb):
 ```bash
 docker run -d -v "/var/lib/influxdb/data:/data" -p 8083:8083 -p 8086:8086 --expose 8090 --expose 8099 tutum/influxdb
 ```
