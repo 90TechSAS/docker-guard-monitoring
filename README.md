@@ -32,12 +32,14 @@ Now, you can install Docker Guard Monitoring with docker:
 Clone the project:
 ```bash
 git clone https://github.com/90TechSAS/docker-guard-monitoring.git
-cd docker-guard-monitoring/docker
 ```
 
-Edit the file config.yaml at your own sweet will. Type these commands to build a container with DG monitoring inside and run it!
+Edit the file ```config.yaml``` at your own sweet will (see: "How to configure").
+Type these commands to build a container with the Docker Guard Monitoring inside and run it!
+Note that: when you are is the directory ```docker-guard-monitoring/docker``` and execute build.sh, this script will copy the parent directory in the current directory (```cp -r .. dgp```). The goal to doing this, is to copy your docker-guard-monitoring clone in the Docker container.
 
 ```bash
+cd docker-guard-monitoring/docker
 ./build.sh
 ./run.sh
 ```

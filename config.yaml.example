@@ -1,32 +1,50 @@
+# Docker Guard config
 docker-guard:
+  # Docker Guard's API config
   api:
+    # IP used by the API
+    # If you use 0.0.0.0, the API will listen on every available interfaces
     listen-interface: "0.0.0.0"
+
+    # Port used by the API
+    # By default it's 8123, but you can use every port you want!
     listen-port: "8123"
+   
+    # API user
     api-login: "user"
+
+    # API password
+    # By default it's "changeme" but you REALY SHOULD change it for security purpose!
     api-password: "changeme"
+
+  # InfluxDB config
   influxdb:
-    ip: 127.0.0.1
+    # InfluxDB IP address
+    ip: 172.17.42.1
+
+    # InfluxDB port
     port: 8086
+
+    # InfluxDB db
     db: "dgs"
+
+  # Event config
   event:
+    # List of containers to watch. You can use regexp!
     watch:
       - "db(.)*"
       - "mycontainer"
+
+    # List of transports used for alerts
     transports:
       -
         name: "slack"
-        path: "./transports/slack.sh"
-      -
-        name: "log"
-        path: "./transports/log.sh"
+        path: "/dgm/transports/slack.sh"
+
+# List of Docker Guard probes
 probes:
   -
     name: "probe1"
-    uri: "http://127.0.0.1:80"
-    api-password: "changeme"
-    reload-time: 5
-  -
-    name: "probe2"
-    uri: "https://127.0.0.1:443"
+    uri: "http://172.17.42.1:8123"
     api-password: "changeme"
     reload-time: 5

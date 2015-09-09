@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get configuration
-source "./transports/slack-config.sh"
+source "/dgm/transports/slack-config.sh"
 
 # Check arguments
 if [ $# -lt 5 ] || [ $# -gt 5 ] ; then

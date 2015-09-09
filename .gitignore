@@ -1,9 +1,6 @@
 # Ignore binary
 main
 
-# Ignore dev dockerfile
-docker
-
 # Ignore config file
 config.yaml*
 !config.yaml.example
