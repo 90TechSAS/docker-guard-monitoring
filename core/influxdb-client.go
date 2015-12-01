@@ -208,7 +208,7 @@ func InsertStats(stats []Stat) error {
 				"running":       stats[i].Running,
 			},
 			Time:      time.Now(),
-			Precision: "s",
+			Precision: "us",
 		}
 	}
 
