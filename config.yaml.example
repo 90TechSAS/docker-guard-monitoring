@@ -8,7 +8,7 @@ docker-guard:
 
     # Port used by the API
     # By default it's 8123, but you can use every port you want!
-    listen-port: "8123"
+    listen-port: "8124"
    
     # API user
     api-login: "user"
