@@ -376,38 +376,40 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	// Get results
 	for _, row := range res[0].Series[0].Values {
 		var stat Stat
-		var statValues [8]float64
-		if len(row) != 8 {
-			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: Wrong stat length: %d != 8", len(row)))
+		var statValues [9]float64
+		if len(row) != 9 {
+			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: Wrong stat length: %d != 9", len(row)))
 		}
-		for i := 1; i <= 7; i++ {
-			if i == 4 {
+
+		// Parse
+		for i := 1; i <= 8; i++ {
+			if i == 5 || i == 1 {
 				continue
 			}
 			if row[i] == nil {
 				statValues[i] = 0
 			} else {
-				statValues[i], err = row[i].(json.Number).Float64()
+				statValues[i], err = utils.S2F(row[i].(string))
 				if err != nil {
-					return nil, errors.New("GetStatsByContainerCID: Can't parse value: " + fmt.Sprintf("%s", row[i]))
+					return nil, errors.New("GetStatsByContainerCID: Can't parse value: " + fmt.Sprintf("%#v", row[i]))
 				}
 			}
-
 		}
 
+		// Set
 		stat.Time, _ = time.Parse(time.RFC3339, row[0].(string))
-		stat.ContainerID = containerCID
-		stat.CPUUsage = uint64(statValues[1])
-		stat.NetBandwithRX = uint64(statValues[2])
-		stat.NetBandwithTX = uint64(statValues[3])
-		if row[4] == nil || o.Limit != -1 {
+		stat.ContainerID = row[1].(string)
+		stat.CPUUsage = uint64(statValues[3])
+		stat.NetBandwithRX = uint64(statValues[3])
+		stat.NetBandwithTX = uint64(statValues[4])
+		if row[5] == nil || o.Limit != -1 {
 			stat.Running = false
 		} else {
-			stat.Running = row[4].(bool)
+			stat.Running = row[5].(bool)
 		}
-		stat.SizeMemory = uint64(statValues[5])
-		stat.SizeRootFs = uint64(statValues[6])
-		stat.SizeRw = uint64(statValues[7])
+		stat.SizeMemory = uint64(statValues[6])
+		stat.SizeRootFs = uint64(statValues[7])
+		stat.SizeRw = uint64(statValues[8])
 
 		stats = append(stats, stat)
 	}

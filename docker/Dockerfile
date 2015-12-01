@@ -18,4 +18,4 @@ RUN (cd /dgm && GOPATH=/go /usr/local/go/bin/go build -o dg-monitoring main.go)
 
 EXPOSE 8124
 
-ENTRYPOINT /dgm/dg-monitoring -f /dgm/config.yaml
+ENTRYPOINT /dgm/dg-monitoring -vvv -f /dgm/config.yaml

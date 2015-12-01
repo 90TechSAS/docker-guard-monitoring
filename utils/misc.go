@@ -29,8 +29,7 @@ func F2S(f float64) string {
 /*
 	Convert string => float64
 */
-func S2F(s string) float64 {
-	var f float64
-	f, _ = strconv.ParseFloat(s, 64)
-	return f
+func S2F(s string) (float64, error) {
+	f, err := strconv.ParseFloat(s, 64)
+	return f, err
 }
