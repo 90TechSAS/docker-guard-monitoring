@@ -12,6 +12,16 @@ Because it's fast as hell! Docker Guard is a lightweight software and it can wat
 
 ![Architecture scheme](http://i.imgur.com/74qYu4z.png?1)
 
+## How to configure?
+
+First, you need to copy the config example:
+
+```bash
+cp config.yaml.example config.yaml
+```
+
+Now you can edit the file ```config.yaml``` with your favorite editor before installing.
+
 ## How to install?
 
 First, you need to install InfluxDB 0.9 or newer.
@@ -36,7 +46,7 @@ git clone https://github.com/90TechSAS/docker-guard-monitoring.git
 
 Edit the file ```config.yaml``` at your own sweet will (see: "How to configure").
 Type these commands to build a container with the Docker Guard Monitoring inside and run it!
-Note that: when you are is the directory ```docker-guard-monitoring/docker``` and execute build.sh, this script will copy the parent directory in the current directory (```cp -r .. dgp```). The goal to doing this, is to copy your docker-guard-monitoring clone in the Docker container.
+Note that: when you are is the directory ```docker-guard-monitoring/docker``` and execute build.sh, this script will copy docker-guard-monitoring sources and config in the parent directory to the current directory.
 
 ```bash
 cd docker-guard-monitoring/docker
@@ -44,11 +54,15 @@ cd docker-guard-monitoring/docker
 ./run.sh
 ```
 
-TODO: this part is not finished yet.
+Now, when you type ```docker ps``` you will see something like this:
 
-## How to configure?
+```
+CONTAINER ID        IMAGE                   COMMAND                  CREATED             STATUS              PORTS                                                                NAMES
+865b1ccbb43b        dg-monitoring           "/bin/sh -c '/dgm/dg-"   3 minutes ago       Up 3 minutes        0.0.0.0:8124->8124/tcp                                               pensive_pare
+9074d60353c2        tutum/influxdb:latest   "/run.sh"                13 days ago         Up 13 days          0.0.0.0:8083->8083/tcp, 8090/tcp, 0.0.0.0:8086->8086/tcp, 8099/tcp   jovial_bell
+```
 
-TODO
+If you see the influxdb container + dg-monitoring container, it means that you did the job right.
 
 ## How to make my own transport?
 
