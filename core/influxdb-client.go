@@ -399,7 +399,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 		// Set
 		stat.Time, _ = time.Parse(time.RFC3339, row[0].(string))
 		stat.ContainerID = row[1].(string)
-		stat.CPUUsage = uint64(statValues[3])
+		stat.CPUUsage = uint64(statValues[2])
 		stat.NetBandwithRX = uint64(statValues[3])
 		stat.NetBandwithTX = uint64(statValues[4])
 		if row[5] == nil || o.Limit != -1 {
