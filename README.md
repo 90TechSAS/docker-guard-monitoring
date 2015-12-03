@@ -8,7 +8,7 @@ Docker Guard is a powerful monitoring tool to watch your containers (running or 
 
 Because it's fast as hell! Docker Guard is a lightweight software and it can watch hundreds of containers (maybe thousands?).
 
-## How it works?
+## How does it work?
 
 ![Architecture scheme](http://i.imgur.com/74qYu4z.png?1)
 
