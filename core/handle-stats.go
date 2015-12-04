@@ -131,6 +131,11 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 
 	options = GetOptions(r)
 
+	// Set default Limit
+	if options.Limit == -1 {
+		options.Limit = 20
+	}
+
 	// Get mux Vars
 	containerCIDVar := muxVars["cid"]
 
