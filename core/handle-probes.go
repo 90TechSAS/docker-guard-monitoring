@@ -82,7 +82,7 @@ func HTTPHandlerProbesName(w http.ResponseWriter, r *http.Request) {
 			// Get list of containers
 			sContainers, err = GetSimpleContainersByProbe(p.Name)
 			if err != nil {
-				if err.Error() == "Not found" {
+				if strings.Contains(err.Error(), "Not found") {
 					http.Error(w, http.StatusText(404), 404)
 					return
 				}

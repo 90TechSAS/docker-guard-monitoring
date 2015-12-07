@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -75,7 +76,7 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		var returnedStats []StatPopulated // Returned stats
 		returnedStats, err = GetStatsPByContainerProbeID(probeNameVar, options)
 		if err != nil {
-			if err.Error() == "Not found" {
+			if strings.Contains(err.Error(), "Not found") {
 				http.Error(w, http.StatusText(404), 404)
 				return
 			}
@@ -95,7 +96,7 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		var returnedStats []Stat // Returned stats
 		returnedStats, err = GetStatsByContainerProbeID(probeNameVar, options)
 		if err != nil {
-			if err.Error() == "Not found" {
+			if strings.Contains(err.Error(), "Not found") {
 				http.Error(w, http.StatusText(404), 404)
 				return
 			}
@@ -150,7 +151,7 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 	returnedStats, err = GetStatsByContainerCID(containerCIDVar, options)
 	if err != nil {
 		l.Error("HTTPHandlerStatsCID: Failed to get stats:", err)
-		if err.Error() == "Not found" {
+		if strings.Contains(err.Error(), "Not found") {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}

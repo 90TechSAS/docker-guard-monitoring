@@ -57,7 +57,7 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	// Get container
 	returnedContainer, err = GetContainerByCID(ContainerIDVar)
 	if err != nil {
-		if err.Error() == "Not found" {
+		if strings.Contains(err.Error(), "Not found") {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
@@ -99,7 +99,7 @@ func HTTPHandlerContainersProbeName(w http.ResponseWriter, r *http.Request) {
 	// Get containers by probe ID
 	returnedContainers, err = GetContainersByProbe(probeNameVar)
 	if err != nil {
-		if err.Error() == "Not found" {
+		if strings.Contains(err.Error(), "Not found") {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
