@@ -99,10 +99,11 @@ func HTTPHandlerContainersProbeName(w http.ResponseWriter, r *http.Request) {
 	// Get containers by probe ID
 	returnedContainers, err = GetContainersByProbe(probeNameVar)
 	if err != nil {
-		if err.Error() == "Not Found" {
+		if err.Error() == "Not found" {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
+		l.Error("HTTPHandlerContainersProbeID: Failed to get containers by probe:", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
@@ -110,7 +111,7 @@ func HTTPHandlerContainersProbeName(w http.ResponseWriter, r *http.Request) {
 	// returnedContainers => json
 	tmpJSON, err := json.Marshal(returnedContainers)
 	if err != nil {
-		l.Error("HTTPHandlerContainersProbeID: Failed to marshal struct")
+		l.Error("HTTPHandlerContainersProbeID: Failed to marshal struct:", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
