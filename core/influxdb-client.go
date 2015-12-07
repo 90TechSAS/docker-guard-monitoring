@@ -148,7 +148,7 @@ func (s *Stat) Insert() error {
 			"containerid": s.ContainerID,
 		},
 		Fields: map[string]interface{}{
-			"sizerootfs":    s.SizeRootFs,
+			"sizerootfs":    float64(s.SizeRootFs),
 			"sizerw":        s.SizeRw,
 			"sizememory":    s.SizeMemory,
 			"netbandwithrx": s.NetBandwithRX,
@@ -169,6 +169,7 @@ func (s *Stat) Insert() error {
 
 	// Write point in InfluxDB server
 	timer := time.Now()
+	l.Warn("Insert:", bps)
 	_, err = DB.Write(bps)
 	if err != nil {
 		l.Error("Failed to write in InfluxDB:", bps, ". Error:", err)
@@ -199,12 +200,12 @@ func InsertStats(stats []Stat) error {
 				"containerid": stats[i].ContainerID,
 			},
 			Fields: map[string]interface{}{
-				"sizerootfs":    stats[i].SizeRootFs,
-				"sizerw":        stats[i].SizeRw,
-				"sizememory":    stats[i].SizeMemory,
-				"netbandwithrx": stats[i].NetBandwithRX,
-				"netbandwithtx": stats[i].NetBandwithTX,
-				"cpuusage":      stats[i].CPUUsage,
+				"sizerootfs":    int64(stats[i].SizeRootFs),
+				"sizerw":        int64(stats[i].SizeRw),
+				"sizememory":    int64(stats[i].SizeMemory),
+				"netbandwithrx": int64(stats[i].NetBandwithRX),
+				"netbandwithtx": int64(stats[i].NetBandwithTX),
+				"cpuusage":      int64(stats[i].CPUUsage),
 				"running":       stats[i].Running,
 			},
 			Time:      time.Now(),
@@ -377,6 +378,11 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	for _, row := range res[0].Series[0].Values {
 		var stat Stat
 		var statValues [9]float64
+
+		for k, v := range row {
+			l.Warn(fmt.Sprintf("[%d] => %#v\n", k, v))
+		}
+
 		if len(row) != 9 {
 			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: Wrong stat length: %d != 9", len(row)))
 		}

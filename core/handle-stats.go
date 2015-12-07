@@ -75,7 +75,11 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		var returnedStats []StatPopulated // Returned stats
 		returnedStats, err = GetStatsPByContainerProbeID(probeNameVar, options)
 		if err != nil {
-			l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
+			if err.Error() == "Not found" {
+				http.Error(w, http.StatusText(404), 404)
+				return
+			}
+			l.Error("HTTPHandlerStatsProbeName: Failed to get stats:", err)
 			http.Error(w, http.StatusText(500), 500)
 			return
 		}
@@ -83,7 +87,7 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		// returnedStats => json
 		tmpJSON, err = json.Marshal(returnedStats)
 		if err != nil {
-			l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
+			l.Error("HTTPHandlerStatsProbeName: Failed to marshal struct:", err)
 			http.Error(w, http.StatusText(500), 500)
 			return
 		}
@@ -91,7 +95,11 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		var returnedStats []Stat // Returned stats
 		returnedStats, err = GetStatsByContainerProbeID(probeNameVar, options)
 		if err != nil {
-			l.Error("HTTPHandlerStatsProbeID: Failed to get stats:", err)
+			if err.Error() == "Not found" {
+				http.Error(w, http.StatusText(404), 404)
+				return
+			}
+			l.Error("HTTPHandlerStatsProbeName: Failed to get stats:", err)
 			http.Error(w, http.StatusText(500), 500)
 			return
 		}
@@ -99,7 +107,7 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		// returnedStats => json
 		tmpJSON, err = json.Marshal(returnedStats)
 		if err != nil {
-			l.Error("HTTPHandlerStatsProbeID: Failed to marshal struct:", err)
+			l.Error("HTTPHandlerStatsProbeName: Failed to marshal struct:", err)
 			http.Error(w, http.StatusText(500), 500)
 			return
 		}

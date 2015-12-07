@@ -82,6 +82,10 @@ func HTTPHandlerProbesName(w http.ResponseWriter, r *http.Request) {
 			// Get list of containers
 			sContainers, err = GetSimpleContainersByProbe(p.Name)
 			if err != nil {
+				if err.Error() == "Not found" {
+					http.Error(w, http.StatusText(404), 404)
+					return
+				}
 				l.Error("HTTPHandlerProbesName: Failed to get list of containers")
 				http.Error(w, http.StatusText(500), 500)
 				return
