@@ -189,7 +189,12 @@ ___
 **Description:**
 
 Get the list of probes.
-* $populate : Populate the 'Containers' field
+GET parameters:
+
+| Parameter     | Description                      | Example              | Default     |
+|-------------- |----------------------------------|----------------------|-------------|
+| populate      | Populate the 'Containers' field  | true                 | false       |
+
 
 **Example:**
 ```bash
