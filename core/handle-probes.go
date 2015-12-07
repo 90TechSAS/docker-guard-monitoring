@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	dguard "github.com/90TechSAS/libgo-docker-guard"
 	"github.com/gorilla/mux"
