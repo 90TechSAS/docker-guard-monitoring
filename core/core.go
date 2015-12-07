@@ -263,12 +263,12 @@ func MonitorProbe(p Probe) {
 
 			newStat = Stat{id,
 				time.Unix(int64(c.Time), 0),
-				uint64(c.SizeRootFs),
-				uint64(c.SizeRw),
-				uint64(c.MemoryUsed),
-				uint64(c.NetBandwithRX),
-				uint64(c.NetBandwithTX),
-				uint64(c.CPUUsage),
+				float64(c.SizeRootFs),
+				float64(c.SizeRw),
+				float64(c.MemoryUsed),
+				float64(c.NetBandwithRX),
+				float64(c.NetBandwithTX),
+				float64(c.CPUUsage),
 				c.Running}
 
 			statsToInsert = append(statsToInsert, newStat)

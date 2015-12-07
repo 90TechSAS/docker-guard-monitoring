@@ -16,12 +16,12 @@ import (
 type StatPopulated struct {
 	Container     Container
 	Time          time.Time
-	SizeRootFs    uint64
-	SizeRw        uint64
-	SizeMemory    uint64
-	NetBandwithRX uint64
-	NetBandwithTX uint64
-	CPUUsage      uint64
+	SizeRootFs    float64
+	SizeRw        float64
+	SizeMemory    float64
+	NetBandwithRX float64
+	NetBandwithTX float64
+	CPUUsage      float64
 	Running       bool
 }
 

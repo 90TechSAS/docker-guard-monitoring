@@ -20,12 +20,12 @@ import (
 type Stat struct {
 	ContainerID   string
 	Time          time.Time
-	SizeRootFs    uint64
-	SizeRw        uint64
-	SizeMemory    uint64
-	NetBandwithRX uint64
-	NetBandwithTX uint64
-	CPUUsage      uint64
+	SizeRootFs    float64
+	SizeRw        float64
+	SizeMemory    float64
+	NetBandwithRX float64
+	NetBandwithTX float64
+	CPUUsage      float64
 	Running       bool
 }
 
@@ -148,12 +148,12 @@ func (s *Stat) Insert() error {
 			"containerid": s.ContainerID,
 		},
 		Fields: map[string]interface{}{
-			"sizerootfs":    int64(s.SizeRootFs),
-			"sizerw":        int64(s.SizeRw),
-			"sizememory":    int64(s.SizeMemory),
-			"netbandwithrx": int64(s.NetBandwithRX),
-			"netbandwithtx": int64(s.NetBandwithTX),
-			"cpuusage":      int64(s.CPUUsage),
+			"sizerootfs":    float64(s.SizeRootFs),
+			"sizerw":        float64(s.SizeRw),
+			"sizememory":    float64(s.SizeMemory),
+			"netbandwithrx": float64(s.NetBandwithRX),
+			"netbandwithtx": float64(s.NetBandwithTX),
+			"cpuusage":      float64(s.CPUUsage),
 			"running":       s.Running,
 		},
 		Time:      time.Now(),
@@ -200,12 +200,12 @@ func InsertStats(stats []Stat) error {
 				"containerid": stats[i].ContainerID,
 			},
 			Fields: map[string]interface{}{
-				"sizerootfs":    int64(stats[i].SizeRootFs),
-				"sizerw":        int64(stats[i].SizeRw),
-				"sizememory":    int64(stats[i].SizeMemory),
-				"netbandwithrx": int64(stats[i].NetBandwithRX),
-				"netbandwithtx": int64(stats[i].NetBandwithTX),
-				"cpuusage":      int64(stats[i].CPUUsage),
+				"sizerootfs":    float64(stats[i].SizeRootFs),
+				"sizerw":        float64(stats[i].SizeRw),
+				"sizememory":    float64(stats[i].SizeMemory),
+				"netbandwithrx": float64(stats[i].NetBandwithRX),
+				"netbandwithtx": float64(stats[i].NetBandwithTX),
+				"cpuusage":      float64(stats[i].CPUUsage),
 				"running":       stats[i].Running,
 			},
 			Time:      time.Now(),
@@ -257,7 +257,7 @@ func (c *Container) GetLastStat() (Stat, error) {
 
 	// Get results
 	for _, row := range res[0].Series[0].Values {
-		var statValues [8]int64
+		var statValues [8]float64
 		if len(row) != 8 {
 			return stat, errors.New(fmt.Sprintf("GetLastStat: Wrong stat length: %d != 8", len(row)))
 		}
@@ -265,20 +265,20 @@ func (c *Container) GetLastStat() (Stat, error) {
 			if i == 4 {
 				continue
 			}
-			statValues[i], err = row[i].(json.Number).Int64()
+			statValues[i], err = row[i].(json.Number).Float64()
 			if err != nil {
 				return stat, errors.New("GetLastStat: Can't parse value: " + row[i].(string))
 			}
 		}
 
 		stat.ContainerID = c.CID
-		stat.CPUUsage = uint64(statValues[1])
-		stat.NetBandwithRX = uint64(statValues[2])
-		stat.NetBandwithTX = uint64(statValues[3])
+		stat.CPUUsage = float64(statValues[1])
+		stat.NetBandwithRX = float64(statValues[2])
+		stat.NetBandwithTX = float64(statValues[3])
 		stat.Running = row[4].(bool)
-		stat.SizeMemory = uint64(statValues[5])
-		stat.SizeRootFs = uint64(statValues[6])
-		stat.SizeRw = uint64(statValues[7])
+		stat.SizeMemory = float64(statValues[5])
+		stat.SizeRootFs = float64(statValues[6])
+		stat.SizeRw = float64(statValues[7])
 	}
 
 	return stat, err
@@ -405,17 +405,17 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 		// Set
 		stat.Time, _ = time.Parse(time.RFC3339, row[0].(string))
 		stat.ContainerID = containerCID
-		stat.CPUUsage = uint64(statValues[1])
-		stat.NetBandwithRX = uint64(statValues[2])
-		stat.NetBandwithTX = uint64(statValues[3])
+		stat.CPUUsage = float64(statValues[1])
+		stat.NetBandwithRX = float64(statValues[2])
+		stat.NetBandwithTX = float64(statValues[3])
 		if row[4] == nil || o.Limit != -1 {
 			stat.Running = false
 		} else {
 			stat.Running = row[4].(bool)
 		}
-		stat.SizeMemory = uint64(statValues[5])
-		stat.SizeRootFs = uint64(statValues[6])
-		stat.SizeRw = uint64(statValues[7])
+		stat.SizeMemory = float64(statValues[5])
+		stat.SizeRootFs = float64(statValues[6])
+		stat.SizeRw = float64(statValues[7])
 
 		stats = append(stats, stat)
 	}
