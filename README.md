@@ -189,6 +189,7 @@ ___
 **Description:**
 
 Get the list of probes.
+* $populate : Populate the 'Containers' field
 
 **Example:**
 ```bash
