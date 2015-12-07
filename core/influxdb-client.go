@@ -363,7 +363,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	}
 
 	// Send query
-	l.Debug("GetStatsByContainerCID: InfluxDB query:", query)
+	l.Debug("GetStatsByContainerCID: ("+containerCID+") InfluxDB query:", query)
 	res, err := queryDB(DB, query)
 	if err != nil {
 		return nil, err
@@ -371,7 +371,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 
 	// Check if not found
 	if len(res) < 1 || len(res[0].Series) < 1 {
-		return nil, errors.New("GetStatsByContainerCID: Not found")
+		return nil, errors.New("GetStatsByContainerCID: (" + containerCID + ") Not found")
 	}
 
 	// Get results
@@ -384,7 +384,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 		}
 
 		if len(row) != 8 {
-			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: Wrong stat length: %d != 8", len(row)))
+			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: ("+containerCID+") Wrong stat length: %d != 8", len(row)))
 		}
 
 		// Parse
@@ -397,7 +397,7 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 			} else {
 				statValues[i], err = row[i].(json.Number).Float64()
 				if err != nil {
-					return nil, errors.New("GetStatsByContainerCID: Can't parse value: " + fmt.Sprintf("%#v", row[i]))
+					return nil, errors.New("GetStatsByContainerCID: (" + containerCID + ") Can't parse value: " + fmt.Sprintf("%#v", row[i]))
 				}
 			}
 		}
