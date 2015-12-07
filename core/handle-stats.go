@@ -150,6 +150,10 @@ func HTTPHandlerStatsCID(w http.ResponseWriter, r *http.Request) {
 	returnedStats, err = GetStatsByContainerCID(containerCIDVar, options)
 	if err != nil {
 		l.Error("HTTPHandlerStatsCID: Failed to get stats:", err)
+		if err.Error() == "Not found" {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
