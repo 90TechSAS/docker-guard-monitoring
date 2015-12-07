@@ -77,6 +77,7 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		returnedStats, err = GetStatsPByContainerProbeID(probeNameVar, options)
 		if err != nil {
 			if strings.Contains(err.Error(), "Not found") {
+				l.Error("HTTPHandlerStatsProbeName: Failed to get stats:", err)
 				http.Error(w, http.StatusText(404), 404)
 				return
 			}
@@ -97,6 +98,7 @@ func HTTPHandlerStatsProbeName(w http.ResponseWriter, r *http.Request) {
 		returnedStats, err = GetStatsByContainerProbeID(probeNameVar, options)
 		if err != nil {
 			if strings.Contains(err.Error(), "Not found") {
+				l.Error("HTTPHandlerStatsProbeName: Failed to get stats:", err)
 				http.Error(w, http.StatusText(404), 404)
 				return
 			}
