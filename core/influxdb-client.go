@@ -247,7 +247,7 @@ func (c *Container) GetLastStat() (Stat, error) {
 						last(sizerootfs),
 						last(sizerw) 
 				FROM cstats
-				WHERE containerid = '` + c.CID + `'`
+				WHERE containerid = '` + c.CID + `' fill(none)`
 
 	// Send query
 	res, err := queryDB(DB, query)
@@ -361,6 +361,9 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 		groupByTime = int(float64(betweenDuration.Seconds()) / float64(o.Limit) * 1000)
 		query += fmt.Sprintf(" GROUP BY time(%dms)", groupByTime)
 	}
+
+	// Add fill
+	query += " fill(none)"
 
 	// Send query
 	l.Debug("GetStatsByContainerCID: ("+containerCID+") InfluxDB query:", query)
