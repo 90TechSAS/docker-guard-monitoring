@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	dguard "github.com/90TechSAS/libgo-docker-guard"
 	"github.com/gorilla/mux"
 )
 
@@ -14,7 +15,7 @@ import (
 	Stat populated
 */
 type StatPopulated struct {
-	Container     Container
+	Container     dguard.Container
 	Time          time.Time
 	SizeRootFs    float64
 	SizeRw        float64

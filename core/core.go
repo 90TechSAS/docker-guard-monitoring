@@ -64,7 +64,7 @@ func MonitorProbe(p Probe) {
 	var err error                                  // Error handling
 	var containers map[string]*dguard.Container    // Returned container list
 	var oldContainers map[string]*dguard.Container // Old returned container list (used to compare running state)
-	var dbContainers []Container                   // Containers in DB
+	var dbContainers []dguard.Container            // Containers in DB
 	var tmpProbeInfos dguard.ProbeInfos            // Temporary probe infos
 
 	// Reloading loop
@@ -184,12 +184,14 @@ func MonitorProbe(p Probe) {
 		}
 		for _, dbC := range dbContainers {
 			var containerStillExist = false
+			dbC.Probe = p.Name
 			for _, c := range containers {
-				if dbC.CID == c.ID {
+				c.Probe = p.Name
+				if dbC.ID == c.ID {
 					containerStillExist = true
 					// Check if container started or stopped
-					c1, ok1 := containers[dbC.CID]
-					c2, ok2 := oldContainers[dbC.CID]
+					c1, ok1 := containers[dbC.ID]
+					c2, ok2 := oldContainers[dbC.ID]
 					if ok1 && ok2 && (c1.Running != c2.Running) {
 						var event dguard.Event
 						var eventSeverity int
@@ -204,7 +206,7 @@ func MonitorProbe(p Probe) {
 						event = dguard.Event{
 							Severity: eventSeverity,
 							Type:     eventType,
-							Target:   dbC.Hostname + " (" + dbC.CID + ")",
+							Target:   dbC.Hostname + " (" + dbC.ID + ")",
 							Probe:    p.Name,
 							Data:     ""}
 						Alert(event)
@@ -215,11 +217,11 @@ func MonitorProbe(p Probe) {
 				var event = dguard.Event{
 					Severity: dguard.EventNotice,
 					Type:     dguard.EventContainerRemoved,
-					Target:   dbC.Hostname + " (" + dbC.CID + ")",
+					Target:   dbC.Hostname + " (" + dbC.ID + ")",
 					Probe:    p.Name,
 					Data:     ""}
 
-				dbC.Delete()
+				DeleteContainer(&dbC)
 
 				Alert(event)
 			}
@@ -228,37 +230,38 @@ func MonitorProbe(p Probe) {
 		// Add containers and stats in DB
 		for _, c := range containers {
 			var id string
-			var tmpContainer Container
+			var tmpContainer dguard.Container
 			var newStat Stat
 
 			// Add containers in DB
+			c.Probe = p.Name
 			tmpContainer, err = GetContainerByCID(c.ID)
 			if err != nil {
 				if err.Error() == "Not found" {
 					var event dguard.Event
 
-					newContainer := Container{c.ID, p.Name, c.Hostname, c.Image, c.IPAddress, c.MacAddress}
+					newContainer := c
 
 					event = dguard.Event{
 						Severity: dguard.EventNotice,
 						Type:     dguard.EventContainerCreated,
-						Target:   newContainer.Hostname + " (" + newContainer.CID + ")",
+						Target:   newContainer.Hostname + " (" + newContainer.ID + ")",
 						Probe:    p.Name,
 						Data:     "Image: " + newContainer.Image}
-					err = newContainer.Insert()
+					err = InsertContainer(newContainer)
 
 					Alert(event)
 					if err != nil {
 						l.Error("MonitorProbe ("+p.Name+"): container insert:", err)
 						continue
 					}
-					id = newContainer.CID
+					id = newContainer.ID
 				} else {
 					l.Error("MonitorProbe ("+p.Name+"): GetContainerById:", err)
 					continue
 				}
 			} else {
-				id = tmpContainer.CID
+				id = tmpContainer.ID
 			}
 
 			newStat = Stat{id,

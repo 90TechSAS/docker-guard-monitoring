@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	dguard "github.com/90TechSAS/libgo-docker-guard"
 	influxdb "github.com/influxdb/influxdb/client"
 
 	"../utils"
@@ -235,7 +236,7 @@ func InsertStats(stats []Stat) error {
 /*
 	Get container's last stat
 */
-func (c *Container) GetLastStat() (Stat, error) {
+func GetLastStat(c *dguard.Container) (Stat, error) {
 	var stat Stat // Returned stat
 	var err error // Error handling
 
@@ -247,7 +248,7 @@ func (c *Container) GetLastStat() (Stat, error) {
 						last(sizerootfs),
 						last(sizerw) 
 				FROM cstats
-				WHERE containerid = '` + c.CID + `' fill(none)`
+				WHERE containerid = '` + c.ID + `' fill(none)`
 
 	// Send query
 	res, err := queryDB(DB, query)
@@ -271,7 +272,7 @@ func (c *Container) GetLastStat() (Stat, error) {
 			}
 		}
 
-		stat.ContainerID = c.CID
+		stat.ContainerID = c.ID
 		stat.CPUUsage = float64(statValues[1])
 		stat.NetBandwithRX = float64(statValues[2])
 		stat.NetBandwithTX = float64(statValues[3])
@@ -435,9 +436,9 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	Get stats by probe name
 */
 func GetStatsByContainerProbeID(probeName string, o Options) ([]Stat, error) {
-	var containers []Container // List of containers in the probe
-	var stats []Stat           // List of stats to return
-	var err error              // Error handling
+	var containers []dguard.Container // List of containers in the probe
+	var stats []Stat                  // List of stats to return
+	var err error                     // Error handling
 
 	// Get list of containers in the probe
 	containers, err = GetContainersByProbe(probeName)
@@ -447,7 +448,7 @@ func GetStatsByContainerProbeID(probeName string, o Options) ([]Stat, error) {
 
 	// Get stats for each containers
 	for _, container := range containers {
-		tmpStats, err := GetStatsByContainerCID(container.CID, o)
+		tmpStats, err := GetStatsByContainerCID(container.ID, o)
 		if err != nil {
 			return nil, err
 		}
@@ -463,9 +464,9 @@ func GetStatsByContainerProbeID(probeName string, o Options) ([]Stat, error) {
 	Get stats populated by probe name
 */
 func GetStatsPByContainerProbeID(probeName string, o Options) ([]StatPopulated, error) {
-	var containers []Container // List of containers in the probe
-	var statsP []StatPopulated // List of stats populated to return
-	var err error              // Error handling
+	var containers []dguard.Container // List of containers in the probe
+	var statsP []StatPopulated        // List of stats populated to return
+	var err error                     // Error handling
 
 	// Get list of containers in the probe
 	containers, err = GetContainersByProbe(probeName)
@@ -475,7 +476,7 @@ func GetStatsPByContainerProbeID(probeName string, o Options) ([]StatPopulated, 
 
 	// Get stats for each containers
 	for _, container := range containers {
-		tmpStats, err := GetStatsByContainerCID(container.CID, o)
+		tmpStats, err := GetStatsByContainerCID(container.ID, o)
 		if err != nil {
 			return nil, err
 		}

@@ -10,18 +10,6 @@ import (
 	"../utils"
 )
 
-/*
-	Container info
-*/
-type Container struct {
-	CID        string
-	Probe      string
-	Hostname   string
-	Image      string
-	IPAddress  string
-	MacAddress string
-}
-
 const (
 	// File to store containerList
 	ContainerListFilePath = "./containers.json"
@@ -29,7 +17,7 @@ const (
 
 var (
 	// map[PROBE_NAME] => map[CONTAINER_ID] => Container
-	containerList map[string]*map[string]*Container
+	containerList map[string]*map[string]*dguard.Container
 	// containerList's Mutex
 	ContainerListMutex sync.Mutex
 )
@@ -39,7 +27,7 @@ var (
 */
 func InitContainersController() {
 	// Make map
-	containerList = make(map[string]*map[string]*Container)
+	containerList = make(map[string]*map[string]*dguard.Container)
 
 	// Check if ContainerListFilePath exists
 	if utils.FileExists(ContainerListFilePath) {
@@ -49,7 +37,6 @@ func InitContainersController() {
 			l.Critical("Can't load containers list from file:", err)
 		}
 	}
-
 }
 
 /*
@@ -101,7 +88,7 @@ func SaveListToFile() error {
 /*
 	Insert a Container in containerList
 */
-func (c *Container) Insert() error {
+func InsertContainer(c *dguard.Container) error {
 	// Lock / Unlock containerList
 	ContainerListMutex.Lock()
 	defer func() {
@@ -114,13 +101,13 @@ func (c *Container) Insert() error {
 
 	// If probe doesn't exist, create the map of the probe
 	if !ok {
-		tmpProbe := make(map[string]*Container)
+		tmpProbe := make(map[string]*dguard.Container)
 		containerList[c.Probe] = &tmpProbe
 		probe = containerList[c.Probe]
 	}
 
 	// Insert container in the map
-	(*probe)[c.CID] = c
+	(*probe)[c.ID] = c
 
 	return nil
 }
@@ -128,7 +115,7 @@ func (c *Container) Insert() error {
 /*
 	Delete a container in containerList
 */
-func (c *Container) Delete() error {
+func DeleteContainer(c *dguard.Container) error {
 	// Lock / Unlock containerList
 	ContainerListMutex.Lock()
 	defer func() {
@@ -145,7 +132,7 @@ func (c *Container) Delete() error {
 	}
 
 	// Delete probe in the map
-	delete(*probe, c.CID)
+	delete(*probe, c.ID)
 
 	return nil
 }
@@ -153,8 +140,8 @@ func (c *Container) Delete() error {
 /*
 	Get containers by probe name in containerList
 */
-func GetContainersByProbe(probeName string) ([]Container, error) {
-	var containers []Container // Containers to return
+func GetContainersByProbe(probeName string) ([]dguard.Container, error) {
+	var containers []dguard.Container // Containers to return
 
 	// Lock / Unlock containerList
 	ContainerListMutex.Lock()
@@ -169,7 +156,7 @@ func GetContainersByProbe(probeName string) ([]Container, error) {
 	}
 
 	// Create temporary list of containers to return
-	containers = make([]Container, len(*probe))
+	containers = make([]dguard.Container, len(*probe))
 
 	// Insert containers in this list
 	var i = 0
@@ -185,7 +172,7 @@ func GetContainersByProbe(probeName string) ([]Container, error) {
 	Get []dguard.SimpleContainer by probe name in containerList
 */
 func GetSimpleContainersByProbe(probeName string) ([]dguard.SimpleContainer, error) {
-	var tmpContainers []Container
+	var tmpContainers []dguard.Container
 	var simpleContainers []dguard.SimpleContainer
 	var err error // Error handling
 
@@ -196,7 +183,7 @@ func GetSimpleContainersByProbe(probeName string) ([]dguard.SimpleContainer, err
 
 	for _, c := range tmpContainers {
 		var simpleContainer = dguard.SimpleContainer{
-			ID:         c.CID,
+			ID:         c.ID,
 			Hostname:   c.Hostname,
 			Image:      c.Image,
 			IPAddress:  c.IPAddress,
@@ -211,8 +198,8 @@ func GetSimpleContainersByProbe(probeName string) ([]dguard.SimpleContainer, err
 /*
 	Get a container by cid in containerList
 */
-func GetContainerByCID(cid string) (Container, error) {
-	var container Container // Container to return
+func GetContainerByCID(cid string) (dguard.Container, error) {
+	var container dguard.Container // Container to return
 
 	// Lock / Unlock containerList
 	ContainerListMutex.Lock()
@@ -221,7 +208,7 @@ func GetContainerByCID(cid string) (Container, error) {
 	// Search container
 	for _, p := range containerList {
 		for _, c := range *p {
-			if c.CID == cid {
+			if c.ID == cid {
 				return *c, nil
 			}
 		}

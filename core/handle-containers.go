@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	dguard "github.com/90TechSAS/libgo-docker-guard"
 	"github.com/gorilla/mux"
 )
 
@@ -13,9 +14,9 @@ import (
 	Return containers infos
 */
 func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
-	var returnStr string               // HTTP Response body
-	var returnedContainers []Container // Returned container
-	var err error                      // Error handling
+	var returnStr string                      // HTTP Response body
+	var returnedContainers []dguard.Container // Returned container
+	var err error                             // Error handling
 
 	http.Error(w, http.StatusText(501), 501) // Not implemented
 	return
@@ -43,10 +44,10 @@ func HTTPHandlerContainers(w http.ResponseWriter, r *http.Request) {
 	Return container infos
 */
 func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
-	var returnStr string            // HTTP Response body
-	var returnedContainer Container // Returned container
-	var muxVars = mux.Vars(r)       // Mux Vars
-	var err error                   // Error handling
+	var returnStr string                   // HTTP Response body
+	var returnedContainer dguard.Container // Returned container
+	var muxVars = mux.Vars(r)              // Mux Vars
+	var err error                          // Error handling
 
 	// Get container ID
 	ContainerIDVar := muxVars["cid"]
@@ -89,10 +90,10 @@ func HTTPHandlerContainerCID(w http.ResponseWriter, r *http.Request) {
 	Return probe's containers infos
 */
 func HTTPHandlerContainersProbeName(w http.ResponseWriter, r *http.Request) {
-	var returnStr string               // HTTP Response body
-	var returnedContainers []Container // Returned container list
-	var muxVars = mux.Vars(r)          // Mux Vars
-	var err error                      // Error handling
+	var returnStr string                      // HTTP Response body
+	var returnedContainers []dguard.Container // Returned container list
+	var muxVars = mux.Vars(r)                 // Mux Vars
+	var err error                             // Error handling
 
 	// Get probe ID
 	probeNameVar := muxVars["name"]
