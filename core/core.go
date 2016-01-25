@@ -233,6 +233,7 @@ func MonitorProbe(p Probe) {
 
 		// Add containers and stats in DB
 		for _, c := range containers {
+			var newContainer = c
 			var id string
 			var tmpContainer dguard.Container
 			var newStat Stat
@@ -244,21 +245,14 @@ func MonitorProbe(p Probe) {
 				if err.Error() == "Not found" {
 					var event dguard.Event
 
-					newContainer := c
-
 					event = dguard.Event{
 						Severity: dguard.EventNotice,
 						Type:     dguard.EventContainerCreated,
 						Target:   newContainer.Hostname + " (" + newContainer.ID + ")",
 						Probe:    p.Name,
 						Data:     "Image: " + newContainer.Image}
-					err = InsertContainer(newContainer)
 
 					Alert(event)
-					if err != nil {
-						l.Error("MonitorProbe ("+p.Name+"): container insert:", err)
-						continue
-					}
 					id = newContainer.ID
 				} else {
 					l.Error("MonitorProbe ("+p.Name+"): GetContainerById:", err)
@@ -266,6 +260,11 @@ func MonitorProbe(p Probe) {
 				}
 			} else {
 				id = tmpContainer.ID
+			}
+			err = InsertContainer(newContainer)
+			if err != nil {
+				l.Error("MonitorProbe ("+p.Name+"): container insert:", err)
+				continue
 			}
 
 			newStat = Stat{id,
