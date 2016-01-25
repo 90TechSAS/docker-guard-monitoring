@@ -279,7 +279,7 @@ func MonitorProbe(p Probe) {
 
 			statsToInsert = append(statsToInsert, newStat)
 		}
-		err = InsertStats(statsToInsert)
+		err = InsertStats(statsToInsert, p.Name)
 		if err != nil {
 			l.Error("MonitorProbe ("+p.Name+"): insert stats:", err)
 			continue

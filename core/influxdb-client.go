@@ -137,7 +137,7 @@ func GetOptions(r *http.Request) Options {
 /*
 	Insert a stat
 */
-func (s *Stat) Insert() error {
+func (s *Stat) Insert(probeName string) error {
 	var pts = make([]influxdb.Point, 1) // InfluxDB point
 	var err error                       // Error handling
 
@@ -147,6 +147,7 @@ func (s *Stat) Insert() error {
 		Measurement: StatsMeasurements,
 		Tags: map[string]string{
 			"containerid": s.ContainerID,
+			"probename":   probeName,
 		},
 		Fields: map[string]interface{}{
 			"sizerootfs":    float64(s.SizeRootFs),
@@ -184,7 +185,7 @@ func (s *Stat) Insert() error {
 /*
 	Insert some stats
 */
-func InsertStats(stats []Stat) error {
+func InsertStats(stats []Stat, probeName string) error {
 	if len(stats) < 1 {
 		return errors.New("len(stats) < 1")
 	}
@@ -199,6 +200,7 @@ func InsertStats(stats []Stat) error {
 			Measurement: StatsMeasurements,
 			Tags: map[string]string{
 				"containerid": stats[i].ContainerID,
+				"probename":   probeName,
 			},
 			Fields: map[string]interface{}{
 				"sizerootfs":    float64(stats[i].SizeRootFs),
