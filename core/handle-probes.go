@@ -28,8 +28,9 @@ func HTTPHandlerProbes(w http.ResponseWriter, r *http.Request) {
 	// If populate == true, insert containers
 	if populate == "true" {
 		for i, probe := range returnProbes {
-			returnProbes[i].Containers, err = GetContainersByProbe(probe.Name)
-			if err != nil {
+			var ok bool
+			returnProbes[i].Containers, ok = ProbeLastStats[probe.Name]
+			if !ok {
 				l.Error("HTTPHandlerProbes: Failed to get list of containers:", err)
 				http.Error(w, http.StatusText(500), 500)
 				return

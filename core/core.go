@@ -12,8 +12,9 @@ import (
 
 var (
 	// HTTP client used to get probe infos
-	HTTPClient = &http.Client{}
-	Probes     []*Probe
+	HTTPClient     = &http.Client{}
+	Probes         []*Probe
+	ProbeLastStats map[string][]dguard.Container
 )
 
 /*
@@ -31,6 +32,9 @@ type Probe struct {
 	Initialize Core
 */
 func Init() {
+	// Init ProbeLastStats map
+	ProbeLastStats = make(map[string][]dguard.Container)
+
 	// Init Containers Controller
 	InitContainersController()
 
@@ -58,20 +62,20 @@ func Init() {
 	Loop for monitoring a probe
 */
 func MonitorProbe(p Probe) {
-	var resp *http.Response                        // Http response
-	var req *http.Request                          // Http response
-	var body []byte                                // Http body
-	var err error                                  // Error handling
-	var containers map[string]*dguard.Container    // Returned container list
-	var oldContainers map[string]*dguard.Container // Old returned container list (used to compare running state)
-	var dbContainers []dguard.Container            // Containers in DB
-	var tmpProbeInfos dguard.ProbeInfos            // Temporary probe infos
+	var resp *http.Response                         // Http response
+	var req *http.Request                           // Http response
+	var body []byte                                 // Http body
+	var err error                                   // Error handling
+	var containers map[string]*dguard.Container     // Returned container list
+	var lastContainers map[string]*dguard.Container // Old returned container list (used to compare running state)
+	var dbContainers []dguard.Container             // Containers in DB
+	var tmpProbeInfos dguard.ProbeInfos             // Temporary probe infos
 
 	// Reloading loop
 	for {
 		var statsToInsert []Stat // Stats to insert
 
-		oldContainers = containers
+		lastContainers = containers
 		containers = nil
 		l.Verbose("Reloading", p.Name)
 
@@ -191,7 +195,7 @@ func MonitorProbe(p Probe) {
 					containerStillExist = true
 					// Check if container started or stopped
 					c1, ok1 := containers[dbC.ID]
-					c2, ok2 := oldContainers[dbC.ID]
+					c2, ok2 := lastContainers[dbC.ID]
 					if ok1 && ok2 && (c1.Running != c2.Running) {
 						var event dguard.Event
 						var eventSeverity int
@@ -282,6 +286,14 @@ func MonitorProbe(p Probe) {
 			continue
 		}
 
+		// Update ProbeLastStats
+		var tmpLastStats []dguard.Container
+		for _, c := range containers {
+			tmpLastStats = append(tmpLastStats, *c)
+		}
+		ProbeLastStats[p.Name] = tmpLastStats
+
+		// Pause
 		time.Sleep(time.Second * time.Duration(p.ReloadTime))
 	}
 }
