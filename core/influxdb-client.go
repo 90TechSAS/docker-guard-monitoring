@@ -438,25 +438,123 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	Get stats by probe name
 */
 func GetStatsByContainerProbeID(probeName string, o Options) ([]Stat, error) {
-	var containers []dguard.Container // List of containers in the probe
-	var stats []Stat                  // List of stats to return
-	var err error                     // Error handling
+	var stats []Stat  // List of stats to return
+	var query string  // InfluxDB query
+	var oS, oB string // Query options
+	var err error     // Error handling
 
-	// Get list of containers in the probe
-	containers, err = GetContainersByProbe(probeName)
+	var sinceT, beforeT time.Time
+	var betweenDuration time.Duration
+	var groupByTime int
+
+	// Check limitations
+	if o.Limit > 90000 {
+		return nil, errors.New(fmt.Sprintf("limit is to damn high! (%d)", o.Limit))
+	}
+	if o.Limit == -1 {
+		o.Limit = 10
+	}
+
+	// Make InfluxDB query
+	query = `	SELECT	mean(cpuusage) as cpuusage,
+							mean(netbandwithrx) as netbandwithrx,
+							mean(netbandwithtx) as netbandwithtx,
+							mean(sizememory) as sizememory,
+							mean(sizerootfs) as sizerootfs,
+							mean(sizerw) as sizerw
+					FROM cstats
+					WHERE time < now()
+					AND probename = '` + probeName + `'`
+
+	// Add options
+	if o.Since != "" || o.Before != "" {
+		if o.Since != "" && o.Before != "" {
+			oS = "'" + o.Since + "'"
+			oB = "'" + o.Before + "'"
+			sinceT, err = time.Parse(time.RFC3339, o.Since)
+			beforeT, err = time.Parse(time.RFC3339, o.Before)
+		} else if o.Since == "" || o.Before != "" {
+			oS = "now() - 1d"
+			oB = "'" + o.Before + "'"
+			sinceT = time.Now().Add(time.Hour * (-24))
+			beforeT, err = time.Parse(time.RFC3339, o.Before)
+		} else if o.Since != "" || o.Before == "" {
+			oS = "'" + o.Since + "'"
+			oB = "now()"
+			sinceT, err = time.Parse(time.RFC3339, o.Since)
+			beforeT = time.Now()
+		}
+	} else {
+		oS = "now() - 1d"
+		oB = "now()"
+		sinceT = time.Now().Add(time.Hour * (-24))
+		beforeT = time.Now()
+	}
+	query += fmt.Sprintf(" AND time > %s AND time < %s ", oS, oB)
+
+	// Calculate limit interval
+	betweenDuration = beforeT.Sub(sinceT)
+	groupByTime = int(float64(betweenDuration.Seconds()) / float64(o.Limit-1) * 1000)
+	query += fmt.Sprintf(" GROUP BY containerid,time(%dms)", groupByTime)
+
+	// Send query
+	l.Debug("GetStatsByContainerProbeID: ("+probeName+") InfluxDB query:", query)
+	res, err := queryDB(DB, query)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get stats for each containers
-	for _, container := range containers {
-		tmpStats, err := GetStatsByContainerCID(container.ID, o)
-		if err != nil {
-			return nil, err
+	// Check if not found
+	if len(res) < 1 || len(res[0].Series) < 1 {
+		return nil, errors.New("GetStatsByContainerProbeID: (" + probeName + ") Not found")
+	}
+
+	// Get results
+	for _, serie := range res[0].Series {
+		var tmpStats []Stat
+		var CID string
+		// Get the tag (Container ID)
+		for _, t := range serie.Tags {
+			CID = t
+			break
 		}
-		for _, tmpStat := range tmpStats {
-			stats = append(stats, tmpStat)
+
+		// Get all values
+		for _, row := range serie.Values {
+			var stat Stat
+			var statValues [7]float64
+
+			if len(row) != 7 {
+				return nil, errors.New(fmt.Sprintf("GetStatsByContainerProbeID: ("+probeName+") Wrong stat length: %d != 8", len(row)))
+			}
+
+			// Parse
+			for i := 1; i <= 6; i++ {
+				if row[i] == nil {
+					statValues[i] = 0
+				} else {
+					statValues[i], err = row[i].(json.Number).Float64()
+					if err != nil {
+						return nil, errors.New("GetStatsByContainerProbeID: (" + probeName + ") Can't parse value: " + fmt.Sprintf("%#v", row[i]))
+					}
+				}
+			}
+
+			// Set
+			stat.Time, _ = time.Parse(time.RFC3339, row[0].(string))
+			stat.ContainerID = CID
+			stat.CPUUsage = float64(statValues[1])
+			stat.NetBandwithRX = float64(statValues[2])
+			stat.NetBandwithTX = float64(statValues[3])
+			stat.SizeMemory = float64(statValues[4])
+			stat.SizeRootFs = float64(statValues[5])
+			stat.SizeRw = float64(statValues[6])
+
+			tmpStats = append(tmpStats, stat)
 		}
+
+		// Append stats
+		stats = append(stats, tmpStats...)
 	}
 
 	return stats, nil
