@@ -131,19 +131,27 @@ Get one container's basic informations.
 
 **Example:**
 ```bash
-curl -XGET  -u "dgadmin:password" "http://127.0.0.1:8124/containers/169be7781716d888835e0cafb46d7a0c3fc18a599406e45e6cf3816d345960d1"
+curl -XGET  -u "dgadmin:password" "http://127.0.0.1:8124/containers/33d62c50c2079d8b7d7cc18a235e7e7c24ef662ada953524f12047a3377de3c4"
 ```
 
 **Result:**
 ```json
-{
-    "CID": "169be7781716d888835e0cafb46d7a0c3fc18a599406e45e6cf3816d345960d1",
-    "Hostname": "169be7781716",
-    "IPAddress": "172.17.0.1",
-    "Image": "ubuntu",
-    "MacAddress": "02:42:ac:11:00:01",
-    "Probe": "probe1"
-}
+    {
+        "Id": "33d62c50c2079d8b7d7cc18a235e7e7c24ef662ada953524f12047a3377de3c4",
+        "Hostname": "33d62c50c207",
+        "IPAddress": "172.17.0.2",
+        "Image": "ubuntu",
+        "MacAddress": "02:42:ac:11:00:02",
+        "Probe": "probe1",
+        "CPUUsage": 0.48,
+        "MemoryUsed": 1179648.0,
+        "NetBandwithRX": 0,
+        "NetBandwithTX": 0,
+        "Running": true,
+        "SizeRootFs": 4096,
+        "SizeRw": 16384,
+        "Time": 1453892345.0
+    }
 ```
 
 ___
@@ -152,7 +160,7 @@ ___
 
 **Description:**
 
-Get one probe's list of containers.
+Get one probe's list of containers with the last stats.
 * $name : Name of the probe
 
 **Example:**
@@ -164,20 +172,36 @@ curl -XGET  -u "dgadmin:password" "http://127.0.0.1:8124/containers/probe/probe1
 ```json
 [
     {
-        "CID": "169be7781716d888835e0cafb46d7a0c3fc18a599406e45e6cf3816d345960d1",
+        "Id": "169be7781716d888835e0cafb46d7a0c3fc18a599406e45e6cf3816d345960d1",
         "Hostname": "169be7781716",
         "IPAddress": "172.17.0.1",
         "Image": "ubuntu",
         "MacAddress": "02:42:ac:11:00:01",
-        "Probe": "probe1"
+        "Probe": "probe1",
+        "CPUUsage": 13.50487750980543,
+        "MemoryUsed": 43282432.0,
+        "NetBandwithRX": 0,
+        "NetBandwithTX": 0,
+        "Running": true,
+        "SizeRootFs": 572817408.0,
+        "SizeRw": 12288,
+        "Time": 1453892345.0
     },
     {
-        "CID": "33d62c50c2079d8b7d7cc18a235e7e7c24ef662ada953524f12047a3377de3c4",
+        "Id": "33d62c50c2079d8b7d7cc18a235e7e7c24ef662ada953524f12047a3377de3c4",
         "Hostname": "33d62c50c207",
         "IPAddress": "172.17.0.2",
         "Image": "ubuntu",
         "MacAddress": "02:42:ac:11:00:02",
-        "Probe": "probe1"
+        "Probe": "probe1",
+        "CPUUsage": 0.48,
+        "MemoryUsed": 1179648.0,
+        "NetBandwithRX": 0,
+        "NetBandwithTX": 0,
+        "Running": true,
+        "SizeRootFs": 4096,
+        "SizeRw": 16384,
+        "Time": 1453892345.0
     }
 ]
 ```
@@ -233,7 +257,7 @@ ___
 
 **Description:**
 
-Get one probe's basic informations + list of containers with basic informations.
+Get one probe's basic informations + list of containers with last stats.
 * $name : Name of the probe
 
 **Example:**
@@ -246,18 +270,36 @@ curl -XGET  -u "dgadmin:password" "http://127.0.0.1:8124/probes/probe1"
 {
     "Containers": [
         {
+            "Id": "169be7781716d888835e0cafb46d7a0c3fc18a599406e45e6cf3816d345960d1",
             "Hostname": "169be7781716",
             "IPAddress": "172.17.0.1",
-            "Id": "169be7781716d888835e0cafb46d7a0c3fc18a599406e45e6cf3816d345960d1",
             "Image": "ubuntu",
-            "MacAddress": "02:42:ac:11:00:01"
+            "MacAddress": "02:42:ac:11:00:01",
+            "Probe": "probe1",
+            "CPUUsage": 13.50487750980543,
+            "MemoryUsed": 43282432.0,
+            "NetBandwithRX": 0,
+            "NetBandwithTX": 0,
+            "Running": true,
+            "SizeRootFs": 572817408.0,
+            "SizeRw": 12288,
+            "Time": 1453892345.0
         },
         {
+            "Id": "33d62c50c2079d8b7d7cc18a235e7e7c24ef662ada953524f12047a3377de3c4",
             "Hostname": "33d62c50c207",
             "IPAddress": "172.17.0.2",
-            "Id": "33d62c50c2079d8b7d7cc18a235e7e7c24ef662ada953524f12047a3377de3c4",
             "Image": "ubuntu",
-            "MacAddress": "02:42:ac:11:00:02"
+            "MacAddress": "02:42:ac:11:00:02",
+            "Probe": "probe1",
+            "CPUUsage": 0.48,
+            "MemoryUsed": 1179648.0,
+            "NetBandwithRX": 0,
+            "NetBandwithTX": 0,
+            "Running": true,
+            "SizeRootFs": 4096,
+            "SizeRw": 16384,
+            "Time": 1453892345.0
         }
     ],
     "DiskAvailable": 3529875456.0,
