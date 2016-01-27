@@ -304,69 +304,53 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	if o.Limit > 90000 {
 		return nil, errors.New(fmt.Sprintf("limit is to damn high! (%d)", o.Limit))
 	}
+	if o.Limit == -1 {
+		o.Limit = 10
+	}
 
 	// Make InfluxDB query
-	if o.Limit == -1 {
-		query = `	SELECT cpuusage,netbandwithrx,netbandwithtx,running,sizememory,sizerootfs,sizerw
-					FROM cstats
-					WHERE time < now()
-					AND containerid = '` + containerCID + `'`
-	} else {
-		query = `	SELECT	mean(cpuusage) as cpuusage,
+	query = `	SELECT	mean(cpuusage) as cpuusage,
 							mean(netbandwithrx) as netbandwithrx,
 							mean(netbandwithtx) as netbandwithtx,
-							mean(running) as running,
 							mean(sizememory) as sizememory,
 							mean(sizerootfs) as sizerootfs,
 							mean(sizerw) as sizerw
 					FROM cstats
 					WHERE time < now()
 					AND containerid = '` + containerCID + `'`
-	}
 
 	// Add options
 	if o.Since != "" || o.Before != "" {
 		if o.Since != "" && o.Before != "" {
 			oS = "'" + o.Since + "'"
 			oB = "'" + o.Before + "'"
-			if o.Limit != -1 {
-				sinceT, err = time.Parse(time.RFC3339, o.Since)
-				beforeT, err = time.Parse(time.RFC3339, o.Before)
-			}
+			sinceT, err = time.Parse(time.RFC3339, o.Since)
+			beforeT, err = time.Parse(time.RFC3339, o.Before)
 		} else if o.Since == "" || o.Before != "" {
 			oS = "now() - 1d"
 			oB = "'" + o.Before + "'"
-			if o.Limit != -1 {
-				sinceT = time.Now().Add(time.Hour * (-24))
-				beforeT, err = time.Parse(time.RFC3339, o.Before)
-			}
+			sinceT = time.Now().Add(time.Hour * (-24))
+			beforeT, err = time.Parse(time.RFC3339, o.Before)
 		} else if o.Since != "" || o.Before == "" {
 			oS = "'" + o.Since + "'"
 			oB = "now()"
-			if o.Limit != -1 {
-				sinceT, err = time.Parse(time.RFC3339, o.Since)
-				beforeT = time.Now()
-			}
+			sinceT, err = time.Parse(time.RFC3339, o.Since)
+			beforeT = time.Now()
 		}
 	} else {
 		oS = "now() - 1d"
 		oB = "now()"
-		if o.Limit != -1 {
-			sinceT = time.Now().Add(time.Hour * (-24))
-			beforeT = time.Now()
-		}
+		sinceT = time.Now().Add(time.Hour * (-24))
+		beforeT = time.Now()
 	}
 	query += fmt.Sprintf(" AND time > %s AND time < %s ", oS, oB)
 
 	// If limit is defined, calculate the interval
 	if o.Limit != -1 {
 		betweenDuration = beforeT.Sub(sinceT)
-		groupByTime = int(float64(betweenDuration.Seconds()) / float64(o.Limit) * 1000)
+		groupByTime = int(float64(betweenDuration.Seconds()) / float64(o.Limit-1) * 1000)
 		query += fmt.Sprintf(" GROUP BY time(%dms)", groupByTime)
 	}
-
-	// Add fill
-	query += " fill(none)"
 
 	// Send query
 	l.Debug("GetStatsByContainerCID: ("+containerCID+") InfluxDB query:", query)
@@ -383,21 +367,14 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 	// Get results
 	for _, row := range res[0].Series[0].Values {
 		var stat Stat
-		var statValues [8]float64
+		var statValues [7]float64
 
-		for k, v := range row {
-			l.Warn(fmt.Sprintf("[%d] => %#v\n", k, v))
-		}
-
-		if len(row) != 8 {
-			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: ("+containerCID+") Wrong stat length: %d != 8", len(row)))
+		if len(row) != 7 {
+			return nil, errors.New(fmt.Sprintf("GetStatsByContainerCID: ("+containerCID+") Wrong stat length: %d != 7", len(row)))
 		}
 
 		// Parse
-		for i := 1; i <= 7; i++ {
-			if i == 4 { // If "running" field, skip
-				continue
-			}
+		for i := 1; i <= 6; i++ {
 			if row[i] == nil {
 				statValues[i] = 0
 			} else {
@@ -414,21 +391,11 @@ func GetStatsByContainerCID(containerCID string, o Options) ([]Stat, error) {
 		stat.CPUUsage = float64(statValues[1])
 		stat.NetBandwithRX = float64(statValues[2])
 		stat.NetBandwithTX = float64(statValues[3])
-		if row[4] == nil || o.Limit != -1 {
-			stat.Running = false
-		} else {
-			stat.Running = row[4].(bool)
-		}
-		stat.SizeMemory = float64(statValues[5])
-		stat.SizeRootFs = float64(statValues[6])
-		stat.SizeRw = float64(statValues[7])
+		stat.SizeMemory = float64(statValues[4])
+		stat.SizeRootFs = float64(statValues[5])
+		stat.SizeRw = float64(statValues[6])
 
 		stats = append(stats, stat)
-	}
-
-	// Fix stats limit
-	if o.Limit != -1 {
-		stats = stats[(len(stats) - o.Limit):]
 	}
 
 	return stats, nil
@@ -525,7 +492,7 @@ func GetStatsByContainerProbeID(probeName string, o Options) ([]Stat, error) {
 			var statValues [7]float64
 
 			if len(row) != 7 {
-				return nil, errors.New(fmt.Sprintf("GetStatsByContainerProbeID: ("+probeName+") Wrong stat length: %d != 8", len(row)))
+				return nil, errors.New(fmt.Sprintf("GetStatsByContainerProbeID: ("+probeName+") Wrong stat length: %d != 7", len(row)))
 			}
 
 			// Parse
