@@ -285,7 +285,7 @@ GET parameters:
 |-------------- |----------------------------------|----------------------|-------------|
 | since         | Date of the first stat (RFC3339) | 2015-09-02T09:27:41Z | now() - 24h |
 | before        | Date of the last stat (RFC3339)  | 2015-09-02T09:27:41Z | now()       |
-| limit         | Number of max stats returned     | 100                  | 20          |
+| limit         | Number of stats returned         | 100                  | 10          |
 
 **Example:**
 ```bash
@@ -346,7 +346,7 @@ GET parameters:
 |-------------- |----------------------------------|----------------------|-------------|
 | since         | Date of the first stat (RFC3339) | 2015-09-02T09:27:41Z | now() - 24h |
 | before        | Date of the last stat (RFC3339)  | 2015-09-02T09:27:41Z | now()       |
-| limit         | Number of max stats returned     | 100                  | 20          |
+| limit         | Number of stats returned         | 100                  | 10          |
 
 **Example:**
 ```bash
